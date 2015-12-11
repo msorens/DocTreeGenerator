@@ -748,7 +748,7 @@ function Get-Sections($text)
 	$sectionName = ""
 	# Handle corner case of no help defined for a given function,
 	# where help returned just 1 row containing the syntax without an indent.
-	if ($helpText.Count -eq 1) { $sectionName = "Syntax"; $rowNum = 1 }
+	if ($helpText.Count -eq 1) { $sectionName = "SYNTAX"; $rowNum = 1 }
 	else {
 	$text | % {
 		# The normal help text has section headers (NAME, SYNOPSIS, SYNTAX, DESCRIPTION, etc.)
@@ -803,16 +803,13 @@ function ConvertTo-Body($sectionHash, $sectionOrder, $helpItem, $moduleName)
             # add CSS class name
             $section = $section -replace "(EXAMPLE\s+\d+\s+------*$break)\s*$break\s*(.*?)($break)", "`$1$(Get-HtmlSpan `$2 -Class $CSS_PS_CMD)`$3"
         }
+		elseif ($sectionName -eq "SYNTAX")
+        {
+            $section += Get-HtmlPara (HtmlEncodeAndStylizeSyntax $sectionHash[$sectionName]) 
+        }
 		else { $section += Get-HtmlPara (HtmlEncode $sectionHash[$sectionName]) }
 		Get-HtmlDiv $section -Class $CSS_PS_DOC_SECTION
 	}
-}
-
-function HtmlEncode($text)
-{
-	# The full [System.Web.HttpUtility]::HtmlEncode() method would do too much,
-	# eradicating newlines in particular. This is sufficient here.
-	$text -replace "<", "&lt;" -replace ">", "&gt;" 
 }
 
 function Add-Links($currentModuleName, $text)
@@ -936,6 +933,11 @@ function Get-HtmlPre($text)
 	"<pre>{0}</pre>" -f [string]::join("`n", $text)
 }
 
+function Get-HtmlItalic($text)
+{
+	"<i>{0}</i>" -f $text
+}
+
 function Get-HtmlHead($text, $level)
 {
 	"<h{0}>{1}</h{0}>`n" -f $level, $text
@@ -961,5 +963,19 @@ function Get-HtmlList($list)
 	if ($list) {
 	"<ul>`n{0}`n</ul>" -f [string]::join("`n", $list) }
 }
+
+function HtmlEncode($text)
+{
+	# The full [System.Web.HttpUtility]::HtmlEncode() method would do too much,
+	# eradicating newlines in particular. This is sufficient here.
+	$text -replace "<", "&lt;" -replace ">", "&gt;" 
+}
+
+function HtmlEncodeAndStylizeSyntax($text)
+{
+	$text -replace '<(.*?)>','<i>&lt;$1&gt;</i>' `
+		-replace '^\s*(\S+)','<b>$1</b>'
+}
+
 
 Export-ModuleMember Convert-HelpToHtmlTree
