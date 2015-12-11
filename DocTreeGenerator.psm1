@@ -366,6 +366,8 @@ function Init-Variables()
     $script:CSS_PS_CMD         = "pscmd"
     $script:CSS_PS_DOC_SECTION = "PowerShellDoc"
 
+	$script:CMDLET_TYPES       ='Function','Filter','Cmdlet'
+
 	$script:namespace_overview_filename = "namespace_overview.html"
 	$script:module_overview_filename    = "module_overview.html"
 
@@ -456,11 +458,11 @@ function Process-Module($namespace, $moduleName, $parentTitle)
 function Generate-FunctionPages($qualifiedModName, $moduleName, $moduleDocPath, $parentTitle, $helpHash)
 {
 	Get-Command -Module $moduleName |
-	? { $_.CommandType -in 'Function','Filter' } |
+	? { $_.CommandType -in $CMDLET_TYPES } |
 	Filter-ThisModule $qualifiedModName $moduleName |
 	% { 
 		$function = $_.Name
-		Write-Host ("        Command: " + $function)
+		Write-Host ("        {0}: {1}" -f $_.CommandType, $function)
 		$script:functionCount++;
 		$helpHash[$function] = Microsoft.PowerShell.Core\Get-Help $_ -Full -ErrorAction SilentlyContinue
 		# convert to string array;
@@ -489,7 +491,7 @@ function Generate-FunctionPages($qualifiedModName, $moduleName, $moduleDocPath, 
 			-copyright $copyright `
 			-revDate $RevisionDate `
 			-moduleDetails $moduleDetails
-		Add-ItemToContentsList $function "function" `
+		Add-ItemToContentsList $function $_.CommandType `
 			-itemUrl (Join-HtmlPath $namespace, $moduleName, ($function+".html")) `
 			-parentUrl (Join-HtmlPath $namespace, $moduleName, "index.html") `
 			-parentName $moduleName
@@ -503,7 +505,7 @@ function Generate-ModulePage($qualifiedModName, $moduleName, $moduleDocPath, $pa
 	Filter-ThisModule $qualifiedModName $moduleName |
 	sort -Property Name |
 	% {
-		if ($_.CommandType -in 'Function','Filter') {
+		if ($_.CommandType -in $CMDLET_TYPES) {
 			Get-HtmlRow (Get-HtmlLink ($_.Name+".html") $_.Name), ($helpHash[$_.Name].Synopsis)
 		}
 		elseif ($_.CommandType -eq "Alias") {
