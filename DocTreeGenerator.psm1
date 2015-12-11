@@ -801,7 +801,7 @@ function ConvertTo-Body($sectionHash, $sectionOrder, $helpItem, $moduleName)
             $section += Get-HtmlPara (HtmlEncode $sectionHash[$sectionName])
             $break = Get-HtmlLineBreak
             # add CSS class name
-            $section = $section -replace "(EXAMPLE\s+\d+\s+------*$break)\s*$break\s*(.*?)($break)", "`$1$(Get-HtmlSpan `$2 -Class $CSS_PS_CMD)`$3"
+            $section = $section -replace "(EXAMPLE\s+\d+\s+------*$break)\s*$break$break\s*(.*?)($break)", "`$1$(Get-HtmlSpan `$2 -Class $CSS_PS_CMD)`$3"
         }
 		elseif ($sectionName -eq "SYNTAX")
         {
@@ -919,10 +919,13 @@ function CheckForIndent ($text)
 {
     $blanks = 0;
     $text | % {
-        if ($_ -match '^\s*$') { if ($blanks++ -eq 0) { "$_<br/>" } else { $_ } }
+		if ($_ -match '^\s*$') { if ($blanks++ -eq 0) { "$_<br/><br/>" } else { $_ } }
         else {
             $blanks = 0
-            if ($_ -match '^\s{4}\s+') { Get-HtmlPre $_ } else { "$_<br/>" }
+			# Most lines (output of Get-Help) will have a 4-char indent 
+            if ($_ -match '^\s{8}|^\t') { Get-HtmlPre $_ }
+			elseif ($_ -match '[A-Za-z.,? ]$') { $_ }
+			else { "$_<br/>" }
         }
     }
 }
