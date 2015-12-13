@@ -798,16 +798,16 @@ function ConvertTo-Body($sectionHash, $sectionOrder, $helpItem, $moduleName)
 		}
 		elseif ($sectionName -eq "EXAMPLES")
 		{
-			$section += Get-HtmlPara (HtmlEncode $sectionHash[$sectionName])
+			$section += Get-HtmlDiv (ApplyIndents (HtmlEncode $sectionHash[$sectionName]))
 			$break = Get-HtmlLineBreak
 			# add CSS class name
 			$section = $section -replace "(EXAMPLE\s+\d+\s+------*$break)\s*$break$break\s*(.*?)($break)", "`$1$(Get-HtmlSpan `$2 -Class $CSS_PS_CMD)`$3"
 		}
 		elseif ($sectionName -eq "SYNTAX")
 		{
-			$section += Get-HtmlPara (HtmlEncodeAndStylizeSyntax $sectionHash[$sectionName]) 
+			$section += Get-HtmlDiv (ApplyIndents (HtmlEncodeAndStylizeSyntax $sectionHash[$sectionName]))
 		}
-		else { $section += Get-HtmlPara (HtmlEncode $sectionHash[$sectionName]) }
+		else { $section += Get-HtmlDiv (ApplyIndents (HtmlEncode $sectionHash[$sectionName])) }
 		Get-HtmlDiv $section -Class $CSS_PS_DOC_SECTION
 	}
 }
@@ -897,7 +897,7 @@ function Get-HtmlTable([String[]]$items)
 	"`n<table border='1'>`n{0}</table>`n" -f ($items | Out-String)
 }
 
-function Get-HtmlDiv($text, $class)
+function Get-HtmlDiv([string[]]$text, $class)
 {
 	if ($class) { $class = (" class='{0}'" -f $class) }
 	"<div{1}>`n{0}</div>`n" -f [string]::join("`n", $text), $class
@@ -909,25 +909,44 @@ function Get-HtmlSpan($text, $class)
 	"<span{1}>{0}</span>" -f [string]::join("`n", $text), $class
 }
 
-function Get-HtmlPara($text, $class)
+function Get-HtmlPara([string[]]$text, $class)
 {
 	if ($class) { $class = (" class='{0}'" -f $class) }
-	"<p{1}>{0}</p>`n" -f [string]::join("`n", (CheckForIndent $text)), $class
+	"<p{1}>{0}</p>`n" -f [string]::join("`n", $text), $class
 }
 
-function CheckForIndent ($text)
+function ApplyIndents ([string[]]$text)
 {
-	$blanks = 0;
+	$listMarks = '*+-'
+	$headerMarks = '=_+*#~-'
+	$blanks = 0; # tracks consecutive blank lines in input
+	$breaks = 0; # tracks breaks emitted in output
 	$text | % {
-		if ($_ -match '^\s*$') { if ($blanks++ -eq 0) { "$_<br/><br/>" } else { $_ } }
+		if ($_ -match '^\s*$') {
+			if ($blanks++ -eq 0) { EmitBreaksTo(2); $breaks = 2 } # add just one in HTML
+		}
 		else {
 			$blanks = 0
 			# Most lines (output of Get-Help) will have a 4-char indent 
-			if ($_ -match '^\s{8}|^\t') { Get-HtmlPre $_ }
-			elseif ($_ -match '[A-Za-z.,? ]$') { $_ }
-			else { "$_<br/>" }
+			if ($_ -match '^\s{4}(?:\s{4}|\t)') { # <pre> counts as a break!
+				Get-HtmlPre $_
+				$breaks = 1
+			}
+			elseif ($_ -match "^\s*[$headerMarks]|[$headerMarks]\s*$|^\s*[$listMarks]\s") {
+				EmitBreaksTo(1)
+				"$_<br/>"
+				$breaks = 1
+			}
+			else  {
+				$_
+			   	$breaks = 0
+			}
 		}
 	}
+}
+
+function EmitBreaksTo($count) {
+	while ($breaks++ -lt $count) { "<br/>" }
 }
 
 function Get-HtmlPre($text)
