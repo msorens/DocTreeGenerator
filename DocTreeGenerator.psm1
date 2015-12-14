@@ -242,14 +242,6 @@ Using the default template, RevisionDate appears at the bottom of each page.
 If you do not intend to supply this value edit the default template
 to remove the rest of the revision date phrase.
 
-.PARAMETER OutputWidth
-[DEPRECATED--This was needed for PowerShell V2]
-You can separate the width of the output from the width of the invoking window
-by setting this parameter to an integer of 80 or larger. The value determines where
-lines wrap. Use a value of 80 to emulate a standard console width.
-But for a web page, 100 or 120 is not unreasonable.
-Default is the current window width.
-
 .INPUTS
 None. You cannot pipe objects to Convert-HelpToHtmlTree.
 
@@ -300,8 +292,7 @@ function Convert-HelpToHtmlTree
 		[string]$TemplateName = "",
 		[string]$DocTitle     = "",
 		[string]$Copyright    = "",
-		[string]$RevisionDate = "",
-		[int]$OutputWidth     = $host.UI.RawUI.BufferSize.Width
+		[string]$RevisionDate = ""
 	)
 
 	Init-Variables
@@ -350,12 +341,6 @@ function Convert-HelpToHtmlTree
 
 function Init-Variables()
 {
-	# This allows output generation to be independent of the width
-	# of the invoking window. Height is irrelevant in this call.
-	# Hmmm... this call fails if wrapped in an if-statement !!
-	$host.UI.RawUI.BufferSize = `
-		new-object System.Management.Automation.Host.Size($OutputWidth,50);
-
 	$script:fileCount        = 0
 	$script:functionCount    = 0
 	$script:moduleCount      = 0
