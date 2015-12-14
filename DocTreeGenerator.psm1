@@ -258,15 +258,22 @@ None. Convert-HelpToHtmlTree does not generate any output.
 
 .EXAMPLE
 PS> Convert-HelpToHtmlTree -Namespaces "MyPsEnhancements" -TargetDir "API"
-Generates documentation for the modules under ...\My Documents\WindowsPowerShell\Modules\MyPsEnhancements to the relative path "API" using the default template, omitting replacement values for DocTitle, Copyright, or RevisionDate.
+Generates documentation for the modules under
+...\My Documents\WindowsPowerShell\Modules\MyPsEnhancements to the relative path "API"
+using the default template, omitting replacement values for DocTitle, Copyright, or RevisionDate.
 
 .EXAMPLE
 PS> Convert-HelpToHtmlTree -Namespaces "Html","Files" -TemplateName "C:\myfiles\psdoc_template.html" -TargetDir "c:\temp\psdoc_tmp" -DocTitle 'PowerShell Libraries v1.5.1 API' -Copyright '2011' -RevisionDate '2011.12.13'
-This uses ...\My Documents\WindowsPowerShell\Modules\Html and ...\My Documents\WindowsPowerShell\Modules\Files as source namespaces and generates output into c:\temp\psdoc_tmp.  The pages use the specified template rather than the default template.  Values are given for the document title/home page header, the copyright date and the revision date.
+This uses ...\My Documents\WindowsPowerShell\Modules\Html and
+...\My Documents\WindowsPowerShell\Modules\Files as source namespaces and
+generates output into c:\temp\psdoc_tmp.  The pages use the specified template
+rather than the default template.  Values are given for the document title/home
+page header, the copyright date and the revision date.
 
 .EXAMPLE
 PS> Convert-HelpToHtmlTree * API
-Scans all namespace-aware directories under ...\WindowsPowerShell\Modules and generates documentation for them in a local subdirectory called API.
+Scans all namespace-aware directories under ...\WindowsPowerShell\Modules
+and generates documentation for them in a local subdirectory called API.
 
 .LINK
 about_Comment_Based_Help
