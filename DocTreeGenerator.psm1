@@ -935,7 +935,8 @@ function ApplyIndents ([string[]]$text)
 			}
 			elseif ($_ -match "^\s*[$headerMarks]|[$headerMarks]\s*$|^\s*[$listMarks]\s") {
 				EmitBreaksTo(1)
-				"$_<br/>"
+				if ($_ -match "^\s*[$listMarks]\s") { $_ } else { Get-HtmlBold $_ }
+				"<br/>"
 				$breaks = 1
 			}
 			else  {
@@ -960,6 +961,12 @@ function Get-HtmlItalic($text)
 {
 	"<i>{0}</i>" -f $text
 }
+
+function Get-HtmlBold([string]$text)
+{
+	"<strong>{0}</strong>" -f $text
+}
+
 
 function Get-HtmlHead($text, $level)
 {
