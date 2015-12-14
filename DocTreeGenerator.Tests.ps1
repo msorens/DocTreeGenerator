@@ -25,27 +25,32 @@ Describe "Convert-HelpToHtmlTree" {
 
 		It "includes auto-break after header-like text" {
 			$text = 'title1 ---', 'title2 =', 'title3 ###'
-			(ApplyIndents $text) -join '' | Should Be '<br/>title1 ---<br/>title2 =<br/>title3 ###<br/>'
+			(ApplyIndents $text) -join '' |
+			Should Be '<br/><strong>title1 ---</strong><br/><strong>title2 =</strong><br/><strong>title3 ###</strong><br/>'
 		}
 
 		It "includes auto-break after header-like text plus extra whitespace at the end" {
 			$text = 'title1 - ', "title2 ==`t", 'plain text'
-			(ApplyIndents $text) -join '' | Should Be "<br/>title1 - <br/>title2 ==`t<br/>plain text"
+			(ApplyIndents $text) -join '' |
+			Should Be "<br/><strong>title1 - </strong><br/><strong>title2 ==`t</strong><br/>plain text"
 		}
 
 		It "includes auto-break before and after header-like text" {
 			$text = '--- title1 ---', '==title2=='
-			(ApplyIndents $text) -join '' | Should Be '<br/>--- title1 ---<br/>==title2==<br/>'
+			(ApplyIndents $text) -join '' |
+			Should Be '<br/><strong>--- title1 ---</strong><br/><strong>==title2==</strong><br/>'
 		}
 
 		It "includes auto-break before header-like text" {
-			$text = '--- title1', '= title2', '### title3'
-			(ApplyIndents $text) -join '' | Should Be '<br/>--- title1<br/>= title2<br/>### title3<br/>'
+			$text = '--- title1', '= title2'
+			(ApplyIndents $text) -join '' |
+			Should Be '<br/><strong>--- title1</strong><br/><strong>= title2</strong><br/>'
 		}
 
 		It "includes auto-break before header-like text plus extra whitespace at the start" {
 			$text = ' ---- title1', '  == title2', 'plain text'
-			(ApplyIndents $text) -join '' | Should Be "<br/> ---- title1<br/>  == title2<br/>plain text"
+			(ApplyIndents $text) -join '' |
+			Should Be "<br/><strong> ---- title1</strong><br/><strong>  == title2</strong><br/>plain text"
 		}
 
 		It "uses preformat block for indented lines" {
@@ -65,12 +70,14 @@ Describe "Convert-HelpToHtmlTree" {
 
 		It "includes auto-break for list-like text with whitespace after preamble" {
 			$text = 'my list:','','','* item1', '- item2', '+ item3'
-			(ApplyIndents $text) -join '' | Should Be 'my list:<br/><br/>* item1<br/>- item2<br/>+ item3<br/>'
+			(ApplyIndents $text) -join '' |
+			Should Be 'my list:<br/><br/>* item1<br/>- item2<br/>+ item3<br/>'
 		}
 
 		It "includes auto-break for list-like text plus extra whitespace at start" {
 			$text = '    * item1', '      - item2', '      + item3'
-			(ApplyIndents $text) -join '' | Should Be '<br/>    * item1<br/>      - item2<br/>      + item3<br/>'
+			(ApplyIndents $text) -join '' |
+			Should Be '<br/>    * item1<br/>      - item2<br/>      + item3<br/>'
 		}
 
 		It "applies double-space for a blank line" {
@@ -87,7 +94,8 @@ Describe "Convert-HelpToHtmlTree" {
 		}
 		It "omits break following a pre-formatted item" {
 			$text = ($eightSpaces + 'one'), '--- header ---'
-			(ApplyIndents $text) -join '' | Should Be '<pre>        one</pre>--- header ---<br/>'
+			(ApplyIndents $text) -join '' |
+			Should Be '<pre>        one</pre><strong>--- header ---</strong><br/>'
 		}
 
 	}
