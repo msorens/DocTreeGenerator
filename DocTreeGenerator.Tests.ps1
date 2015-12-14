@@ -12,17 +12,20 @@ Describe "Convert-HelpToHtmlTree" {
 
 		It "omits break for single words" {
 			$text = 'one', 'two', 'three'
-			(ApplyIndents $text) -join ' ' | Should Be 'one two three'
+			(ApplyIndents $text) -join ' ' |
+			Should Be 'one two three'
 		}
 
 		It "omits break for multiple words" {
 			$text = 'one word', 'two words', 'three words'
-			(ApplyIndents $text) -join ' ' | Should Be 'one word two words three words'
+			(ApplyIndents $text) -join ' ' |
+			Should Be 'one word two words three words'
 		}
 
 		It "omits break for normal text" {
 			$text = 'one word.', 'two words?', 'three words,', 'done'
-			(ApplyIndents $text) -join ' ' | Should Be 'one word. two words? three words, done'
+			(ApplyIndents $text) -join ' ' |
+			Should Be 'one word. two words? three words, done'
 		}
 
 		It "omits break for text with less than 4 header characters" {
@@ -63,17 +66,20 @@ Describe "Convert-HelpToHtmlTree" {
 
 		It "uses preformat block for indented lines" {
 			$text = ($eightSpaces + 'one'), ($eightSpaces + 'two')
-			(ApplyIndents $text) -join '' | Should Be '<pre>        one</pre><pre>        two</pre>'
+			(ApplyIndents $text) -join '' |
+			Should Be '<pre>        one</pre><pre>        two</pre>'
 		}
 
 		It "includes auto-break for list-like text with no preamble" {
 			$text = '* item1', '- item2', '+ item3'
-			(ApplyIndents $text) -join '' | Should Be '<br/>* item1<br/>- item2<br/>+ item3<br/>'
+			(ApplyIndents $text) -join '' |
+			Should Be '<br/>* item1<br/>- item2<br/>+ item3<br/>'
 		}
 
 		It "includes auto-break for list-like text with immediate preamble" {
 			$text = 'my list:','* item1', '- item2', '+ item3'
-			(ApplyIndents $text) -join '' | Should Be 'my list:<br/>* item1<br/>- item2<br/>+ item3<br/>'
+			(ApplyIndents $text) -join '' |
+			Should Be 'my list:<br/>* item1<br/>- item2<br/>+ item3<br/>'
 		}
 
 		It "includes auto-break for list-like text with whitespace after preamble" {
@@ -90,15 +96,18 @@ Describe "Convert-HelpToHtmlTree" {
 
 		It "applies double-space for a blank line" {
 			$text = 'one','','two'
-			(ApplyIndents $text) -join '' | Should Be 'one<br/><br/>two'
+			(ApplyIndents $text) -join '' |
+			Should Be 'one<br/><br/>two'
 		}
 		It "applies just one double-space for multiple blank lines" {
 			$text = 'one','','','','two'
-			(ApplyIndents $text) -join '' | Should Be 'one<br/><br/>two'
+			(ApplyIndents $text) -join '' |
+			Should Be 'one<br/><br/>two'
 		}
 		It "applies just one double-space for list item followed by blank line" {
 			$text = '* item1', '* item2', '','next para...'
-			(ApplyIndents $text) -join '' | Should Be '<br/>* item1<br/>* item2<br/><br/>next para...'
+			(ApplyIndents $text) -join '' |
+			Should Be '<br/>* item1<br/>* item2<br/><br/>next para...'
 		}
 		It "omits break following a pre-formatted item" {
 			$text = ($eightSpaces + 'one'), '------ header ----'
