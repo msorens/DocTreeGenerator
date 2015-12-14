@@ -801,7 +801,8 @@ function ConvertTo-Body($sectionHash, $sectionOrder, $helpItem, $moduleName)
 			$section += Get-HtmlDiv (ApplyIndents (HtmlEncode $sectionHash[$sectionName]))
 			$break = Get-HtmlLineBreak
 			# add CSS class name
-			$section = $section -replace "(EXAMPLE\s+\d+\s+------*$break)\s*$break$break\s*(.*?)($break)", "`$1$(Get-HtmlSpan `$2 -Class $CSS_PS_CMD)`$3"
+			$section = $section -replace "(EXAMPLE\s+\d+\s+------*.*(?:\s*$break)+\s*)(.*?)(\s*$break)",
+					"`$1$(Get-HtmlSpan `$2 -Class $CSS_PS_CMD)`$3"
 		}
 		elseif ($sectionName -eq "SYNTAX")
 		{
