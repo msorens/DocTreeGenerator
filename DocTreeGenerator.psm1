@@ -377,6 +377,7 @@ function Init-Variables()
 
 	$script:namespace_overview_filename = "namespace_overview.html"
 	$script:module_overview_filename    = "module_overview.html"
+	$script:default_template            = "$PSScriptRoot\psdoc_template.html"
 
 	# Get the name of *this* module because it requires special handling.
 	if ($script:MyInvocation.MyCommand.Path -match "Modules\\(.*)\\\w*.psm1")
@@ -385,7 +386,7 @@ function Init-Variables()
 
 	$script:msdnIndex = Get-CmdletDocLinks
 	
-	if (! ($script:template = Get-Template $TemplateName)) { exit }
+	if (! ($script:template = Get-Template $TemplateName $default_template)) { exit }
 	Init-ModuleProperties
 }
 
@@ -699,12 +700,13 @@ function Get-UserPsModulePath()
 	$env:PSModulePath.split(";") | ? { $_ -match "\\$($env:USERNAME)\`$?\\" }
 }
 
-function Get-Template([string]$templateName)
+function Get-Template([string]$templateName, [string]$defaultTemplate)
 {
-	if (!$templateName -or ! (Test-Path $templateName)) {
-		# None supplied; get template in the same location as this script
-		$scriptDir = Split-Path $script:MyInvocation.MyCommand.Path
-		$templateName = Join-Path $scriptDir "psdoc_template.html"
+	if (!$templateName) {
+		$templateName = $defaultTemplate
+	}
+	if (!(Test-Path $templateName)) {
+		throw "$templateName`: file not found"
 	}
 	get-content $templateName
 }
