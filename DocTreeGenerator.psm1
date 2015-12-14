@@ -924,7 +924,7 @@ function ApplyIndents ([string[]]$text)
 				Get-HtmlPre $_
 				$breaks = 1
 			}
-			elseif ($_ -match "^\s*[$headerMarks]|[$headerMarks]\s*$|^\s*[$listMarks]\s") {
+			elseif ($_ -match "^\s*[$headerMarks]{4}|[$headerMarks]{4}\s*$|^\s*[$listMarks]\s") {
 				EmitBreaksTo(1)
 				if ($_ -match "^\s*[$listMarks]\s") { $_ } else { Get-HtmlBold $_ }
 				"<br/>"

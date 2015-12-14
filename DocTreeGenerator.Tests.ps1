@@ -25,34 +25,40 @@ Describe "Convert-HelpToHtmlTree" {
 			(ApplyIndents $text) -join ' ' | Should Be 'one word. two words? three words, done'
 		}
 
+		It "omits break for text with less than 4 header characters" {
+			$text = 'one word.', 'it -- the green one --', 'is true'
+			(ApplyIndents $text) -join ' ' |
+			Should Be 'one word. it -- the green one -- is true'
+		}
+
 		It "includes auto-break after header-like text" {
-			$text = 'title1 ---', 'title2 =', 'title3 ###'
+			$text = 'title1 ----', 'title2 ====', 'title3 ####'
 			(ApplyIndents $text) -join '' |
-			Should Be '<br/><strong>title1 ---</strong><br/><strong>title2 =</strong><br/><strong>title3 ###</strong><br/>'
+			Should Be '<br/><strong>title1 ----</strong><br/><strong>title2 ====</strong><br/><strong>title3 ####</strong><br/>'
 		}
 
 		It "includes auto-break after header-like text plus extra whitespace at the end" {
-			$text = 'title1 - ', "title2 ==`t", 'plain text'
+			$text = 'title1---- ', "title2 ====`t", 'plain text'
 			(ApplyIndents $text) -join '' |
-			Should Be "<br/><strong>title1 - </strong><br/><strong>title2 ==`t</strong><br/>plain text"
+			Should Be "<br/><strong>title1---- </strong><br/><strong>title2 ====`t</strong><br/>plain text"
 		}
 
 		It "includes auto-break before and after header-like text" {
-			$text = '--- title1 ---', '==title2=='
+			$text = '---- title1 ----', '====title2===='
 			(ApplyIndents $text) -join '' |
-			Should Be '<br/><strong>--- title1 ---</strong><br/><strong>==title2==</strong><br/>'
+			Should Be '<br/><strong>---- title1 ----</strong><br/><strong>====title2====</strong><br/>'
 		}
 
 		It "includes auto-break before header-like text" {
-			$text = '--- title1', '= title2'
+			$text = '---- title1', '==== title2'
 			(ApplyIndents $text) -join '' |
-			Should Be '<br/><strong>--- title1</strong><br/><strong>= title2</strong><br/>'
+			Should Be '<br/><strong>---- title1</strong><br/><strong>==== title2</strong><br/>'
 		}
 
 		It "includes auto-break before header-like text plus extra whitespace at the start" {
-			$text = ' ---- title1', '  == title2', 'plain text'
+			$text = ' ---- title1', '  ====== title2', 'plain text'
 			(ApplyIndents $text) -join '' |
-			Should Be "<br/><strong> ---- title1</strong><br/><strong>  == title2</strong><br/>plain text"
+			Should Be "<br/><strong> ---- title1</strong><br/><strong>  ====== title2</strong><br/>plain text"
 		}
 
 		It "uses preformat block for indented lines" {
@@ -95,9 +101,9 @@ Describe "Convert-HelpToHtmlTree" {
 			(ApplyIndents $text) -join '' | Should Be '<br/>* item1<br/>* item2<br/><br/>next para...'
 		}
 		It "omits break following a pre-formatted item" {
-			$text = ($eightSpaces + 'one'), '--- header ---'
+			$text = ($eightSpaces + 'one'), '------ header ----'
 			(ApplyIndents $text) -join '' |
-			Should Be '<pre>        one</pre><strong>--- header ---</strong><br/>'
+			Should Be '<pre>        one</pre><strong>------ header ----</strong><br/>'
 		}
 
 	}
