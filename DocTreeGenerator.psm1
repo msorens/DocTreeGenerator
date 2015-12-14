@@ -705,10 +705,7 @@ function Get-Template([string]$templateName, [string]$defaultTemplate)
 	if (!$templateName) {
 		$templateName = $defaultTemplate
 	}
-	if (!(Test-Path $templateName)) {
-		throw "$templateName`: file not found"
-	}
-	get-content $templateName
+	Get-Content $templateName
 }
 
 # Convert Import-Module into a functional object

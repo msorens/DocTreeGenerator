@@ -4,6 +4,8 @@ InModuleScope DocTreeGenerator {
 
 $eightSpaces = ' ' * 8
 
+$ErrorActionPreference = 'stop'
+
 Describe "Convert-HelpToHtmlTree" {
 
 	Context "Indenting and line breaks" {
@@ -100,27 +102,28 @@ Describe "Convert-HelpToHtmlTree" {
 
 	}
 
-	Context "Template" {
-		Mock Test-Path { $true }
+	Context "Template available" {
+		Mock Get-Content
 
 		It "Uses default if none supplied" {
-			Mock Get-Content
 			Get-Template $null 'default'
 			Assert-MockCalled Get-Content 1 { $Path -eq 'default' } -Scope It
 		}
+
 		It "Uses supplied value when default supplied" {
-			Mock Get-Content
 			Get-Template 'foo' 'default'
 			Assert-MockCalled Get-Content 1 { $Path -eq 'foo' } -Scope It
 		}
+
 		It "Uses supplied value when default not supplied" {
-			Mock Get-Content
 			Get-Template 'foo'
 			Assert-MockCalled Get-Content 1 { $Path -eq 'foo' } -Scope It
 		}
+	}
+
+	Context "Template not available" {
 		It "Reports error if template not found" {
-		Mock Test-Path { $false }
-			{ Get-Template 'foo' } | Should Throw 'file not found'
+			{ Get-Template 'any' } | Should Throw 'Cannot find path'
 		}
 	}
 
