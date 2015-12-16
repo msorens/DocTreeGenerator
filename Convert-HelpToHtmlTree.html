@@ -1,0 +1,421 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN""http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.w3.org/1999/xhtml   http://www.w3.org/2002/08/xhtml/xhtml1-transitional.xsd" xml:lang="en" lang="en">
+<head>
+	<title>Convert-HelpToHtmlTree</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="description" content="API documentation for DocTreeGenerator module">
+	<meta name="keywords" content="powershell,documentation,api,module">
+	<meta name="generator" content="DocTreeGenerator.psm1">
+	<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-type">
+	<meta content="text/css" http-equiv="Content-Style-Type">
+	<meta content="https://github.com/msorens/DocTreeGenerator" name="projectHome">
+	<meta content="Michael Sorens" name="author">
+	<meta name="copyright" content="(c) 2015 Michael Sorens">
+	<link href="http://cleancode.sourceforge.net/css/cleancode.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+<h1>Convert-HelpToHtmlTree</h1>
+
+
+
+<div class='PowerShellDoc'>
+<h2>NAME</h2>
+<div>
+    Convert-HelpToHtmlTree
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>SYNOPSIS</h2>
+<div>
+    Generates API documentation in HTML format for one or more PowerShell namespaces.
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>SYNTAX</h2>
+<div>
+<b>Convert-HelpToHtmlTree</b> [-Namespaces] <i>&lt;String[]&gt;</i> [[-TargetDir] <i>&lt;String&gt;</i>] [[-TemplateName] <i>&lt;String&gt;</i>] [[-DocTitle] <i>&lt;String&gt;</i>] [[-Copyright] <i>&lt;String&gt;</i>] [[-RevisionDate] <i>&lt;String&gt;</i>] [-WhatIf] [-Confirm] [<i>&lt;CommonParameters&gt;</i>]
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>DESCRIPTION</h2>
+<div>
+    Convert-HelpToHtmlTree generates a complete API in HTML format (similar to Sandcastle for .NET or javadoc for Java) for your PowerShell libraries. As with an API documentation generator for any language, the output you get is only as good as the input you provide. But Convert-HelpToHtmlTree needs little additional information than good coding practice already dictates. If you have designed your modules to display proper help when you invoke the standard Get-Help cmdlet you have already done most everything you need to use Convert-HelpToHtmlTree. If you run Convert-HelpToHtmlTree with totally undecorated source files it will generate the full API tree, but instead of detailed descriptions of each function in your library you will get only a concise syntax diagram--just as Get-Help would do. With Convert-HelpToHtmlTree, you will also get a slew of warning messages telling you what key pieces of documentation you are missing.
+<br/>
+<br/>
+    Convert-HelpToHtmlTree supports PowerShell scripted modules (those written in PowerShell) as well as PowerShell binary modules (those written in C#).
+<br/>
+<br/>
+    To get started with decorating your scripted modules properly for Get-Help and Convert-HelpToHtmlTree, start with the PowerShell help topic "about_Comment_Based_Help".  Scroll down to the "Syntax for Comment-Based Help in Functions" section.  Note that the page also talks about adding help for the script itself; that applies only to main scripts (ps1 files) not to modules (psm1 files). Convert-HelpToHtmlTree works only with modules, not with scripts. Best practices dictate that for any substantive code, you will want to use modules in any case. And be sure to use Export-ModuleMember to explicitly specify which functions are public functions within your module; omitting it makes *all* your functions public by default.
+<br/>
+<br/>
+    To get started with decorating your binary modules, you need to do an additional step of preparing a help file for PowerShell to consume. If you use the open-source XmlDoc2CmdletDoc utility, the process is very easy: you decorate your C# code like your PowerShell code, then run one command and you're done. (There are a variety of other tools out there that are much more manual in terms of hand-crafting a MAML file.) See my reference and tutorial on XmlDoc2CmdletDoc at https://www.simple-talk.com/dotnet/software-tools/documenting-your-powershell-binary-cmdlets/.
+<br/>
+<br/>
+    You specify (via the Namespaces parameter) which PowerShell modules to document. The modules must be installed as user modules (i.e. in C:\Users\username\Documents\WindowsPowerShell\Modules) rather than system modules (i.e. C:\Windows\System32\WindowsPowerShell\v1.0\Modules).  See "Storing Modules on Disk" at http://msdn.microsoft.com/en-us/library/dd878324%28v=vs.85%29.aspx as well as "Installing Modules" in my Simple-Talk.com article at http://www.simple-talk.com/dotnet/.net-tools/further-down-the-rabbit-hole-powershell-modules-and-encapsulation/#seventh.
+<br/>
+<br/>
+    See my article "How To Document Your PowerShell Library" at https://www.simple-talk.com/sysadmin/powershell/how-to-document-your-powershell-library/ for a walk-through of using Convert-HelpToHtmlTree.
+<br/>
+<br/>
+    For simplicity, the discussion below focuses on cmdlets written in PowerShell, but the concepts map directly to doc-comments in your C# code as well.
+<br/>
+<br/>
+<strong>    ==== File Organization ====</strong>
+<br/>
+<br/>
+    Convert-HelpToHtmlTree needs some additional doc-comments to generate a cohesive API for you.
+    (1) Each module (x.psm1 or x.dll) must have an associated manifest (x.psd1) in the same directory and the manifest must include a Description property.
+    (2) Each module must have an associated overview (module_overview.html) in the same directory. This is a standard HTML file.  The contents of the &lt;body&gt; element are extracted verbatim as the introductory text of the index.html page for each module.
+    (3) Each namespace must also include an associated overview (namespace_overview.html).  This is a standard HTML file.  The contents of the &lt;body&gt; element are extracted verbatim as the introductory text of each namespace in the master index.html page.
+<br/>
+<br/>
+    Note that I use the term "namespace" here informally because (as of v3) PowerShell does not yet have the notion of namespaces.  Convert-HelpToHtmlTree, however, requires you to structure your modules grouped in namespaces as shown in the sample input tree below.  Thus, if you have a module MyStuff.psm1, normal PowerShell conventions require you to store this in a path like this:
+<br/>
+<br/>
+<pre>        ...\WindowsPowerShell\Modules\MyStuff\MyStuff.psm1</pre>
+<br/>
+    ...but Convert-HelpToHtmlTree requires you to include one more level for namespace, so the module must be stored in a path like this:
+<br/>
+<br/>
+<pre>        ...\WindowsPowerShell\Modules\MyNamespace\MyStuff\MyStuff.psm1</pre>
+<br/>
+    This allows you to organize your modules into more than one logical group if desired. In my own PowerShell library, for example, I have FileTools, SqlTools, and SvnTools modules (among others) all under the CleanCode namespace. But you may, however, include multiple namespaces.
+<br/>
+<br/>
+    Here's a sample input tree illustrating this:
+<pre>        ==========================================</pre>
+<pre>        WindowsPowerShell\Modules</pre>
+<pre>        +---namespace1</pre>
+<pre>            +---namespace_overview.html</pre>
+<pre>            +---moduleA</pre>
+<pre>                +---module_overview.html</pre>
+<pre>                +---moduleA.psm1</pre>
+<pre>                +---moduleA.psd1</pre>
+<pre>            +---moduleB</pre>
+<pre>                +---module_overview.html</pre>
+<pre>                +---moduleB.psm1</pre>
+<pre>                +---moduleB.psd1</pre>
+<pre>            etc...</pre>
+<pre>        +---namespace2</pre>
+<pre>            +---namespace_overview.html</pre>
+<pre>            +---moduleX</pre>
+<pre>                +---module_overview.html</pre>
+<pre>                +---moduleX.psm1</pre>
+<pre>                +---moduleX.psd1</pre>
+<pre>            +---moduleY</pre>
+<pre>                +---module_overview.html</pre>
+<pre>                +---moduleY.psm1</pre>
+<pre>                +---moduleY.psd1</pre>
+<pre>            etc...</pre>
+<pre>        ==========================================</pre>
+<br/>
+    The output structure mirrors the input structure; the above input might generate the output tree shown below. There is a single master index page documenting all namespaces.
+<pre>        ==========================================</pre>
+<pre>        $TargetDir</pre>
+<pre>        +---contents.html</pre>
+<pre>        +---index.html</pre>
+<pre>        +---namespace1</pre>
+<pre>            +---moduleA</pre>
+<pre>                +---index.html</pre>
+<pre>                +---Function1.html</pre>
+<pre>                +---Function2.html</pre>
+<pre>                +---Function3.html</pre>
+<pre>                +---Function4.html</pre>
+<pre>                etc...</pre>
+<pre>            +---moduleB</pre>
+<pre>                +---index.html</pre>
+<pre>                +---Function1.html</pre>
+<pre>                +---Function2.html</pre>
+<pre>                etc...</pre>
+<pre>        +---namespace2</pre>
+<pre>            +---moduleX</pre>
+<pre>                +---index.html</pre>
+<pre>                +---Function1.html</pre>
+<pre>                etc...</pre>
+<pre>            +---moduleY</pre>
+<pre>                +---index.html</pre>
+<pre>                +---Function1.html</pre>
+<pre>                +---Function2.html</pre>
+<pre>                etc...</pre>
+<pre>        etc...</pre>
+<pre>        ==========================================</pre>
+<br/>
+    Convert-HelpToHtmlTree reports its progress as it runs, indicating each module and each function it is documenting. Any detected problems are comingled in this output report. Here is a portion of a run on my CleanCode library (with selected parts removed to force problems to be reported): 
+<pre>        ==========================================</pre>
+<pre>        Module: Assertion</pre>
+<pre>            Command: Assert-Expression</pre>
+<pre>            Command: Get-AssertCounts</pre>
+<pre>            Command: Set-AbortOnError</pre>
+<pre>            Command: Set-MaxExpressionDisplayLength</pre>
+<pre>        Module: DocTreeGenerator</pre>
+<pre>            Command: Convert-HelpToHtmlTree</pre>
+<pre>        ** Missing summary (from module_overview.html)</pre>
+<pre>        ** Missing description (from manifest)</pre>
+<pre>        Module: EnhancedChildItem</pre>
+<pre>            Command: Get-EnhancedChildItem</pre>
+<pre>        ** Missing summary (from module_overview.html)</pre>
+<pre>        Module: Miscellaneous</pre>
+<pre>        ** No objects found</pre>
+<pre>        Module: FileTools</pre>
+<pre>            Command: Get-IniFile</pre>
+<pre>        etc...</pre>
+<pre>        ==========================================</pre>
+<br/>
+    At the end of the run it also reports the number of namespaces, modules, functions, and total files processed.
+<br/>
+<br/>
+<strong>    ==== Documentation Template ====</strong>
+<br/>
+<br/>
+    Take a look at the default template (see TemplateName parameter) and you will find it sprinkled with place holders that are automatically filled in at runtime (surrounded by braces): title, subtitle, breadcrumbs, preamble, body, postscript, copyright, and revdate.  Also, there are module-specific place holders of the form {module.propertyname} where "propertyname" may be any of the standard properties of a module -- use this to see the list of properties:
+<pre>        Get-Module | Get-Member</pre>
+<br/>
+    You will also see conditional section definitions of the form 
+<pre>        {ifdef pagetype}</pre>
+<pre>        . . .</pre>
+<pre>        {endif pagetype}</pre>
+    ...where "pagetype" may be any of the four types of pages created: 
+<br/>
+    + the single master page (pagetype="master"),
+<br/>
+    + the single contents page ("contents"),
+<br/>
+    + the module index pages, one per module ("module"), and
+<br/>
+    + the function pages, one per exported function ("function").
+<br/>
+    The content of these conditional sections (which may be any HTML) is included only on the pages of the corresponding type, while the other conditional sections are suppressed.  Note that the module-specific place holders discussed earlier (e.g. {module.xyz}) may be used in module pages or function pages only.
+<br/>
+<br/>
+<strong>    ==== Output Enhancements: Live links ====</strong>
+<br/>
+<br/>
+    Unlike the MSDN pages for the standard PowerShell library, output generated by Convert-HelpToHtmlTree  makes live links in your references (.LINK) documentation section.  There are seven classes of input you can specify, shown below.  In order, they are MSDN-defined (built-in) cmdlet, MSDN-defined (built-in) topic, custom function in the same module, custom function in a different local module (not yet implemented), plain text, explicit link with a label, and explicit link without a label.
+<br/>
+<br/>
+<pre>        Get-ChildItem</pre>
+<pre>        about_Aliases</pre>
+<pre>        New-CustomFunctionInSameModule</pre>
+<pre>        New-CustomFunctionInOtherModule</pre>
+<pre>        some plain text here</pre>
+<pre>        [other important stuff] (http://foobar.com)</pre>
+<pre>        http://alpha/beta/</pre>
+<br/>
+    This output is generated from the above input:
+<br/>
+<br/>
+<pre>        &lt;ul&gt;</pre>
+<pre>        &lt;li&gt;&lt;a href='http://technet.microsoft.com/en-us/library/dd347686.aspx'&gt;Get-ChildItem&lt;/a&gt;&lt;/li&gt;</pre>
+<pre>        &lt;li&gt;&lt;a href='http://technet.microsoft.com/en-us/library/dd347645.aspx'&gt;about_Aliases&lt;/a&gt;&lt;/li&gt;</pre>
+<pre>        &lt;li&gt;&lt;a href='New-CustomFunctionInSameModule.html'&gt;New-CustomFunctionInSameModule&lt;/a&gt;&lt;/li&gt;</pre>
+<pre>        &lt;li&gt;&lt;a href='../../namespace/module/New-CustomFunctionInOtherModule.html'&gt;New-CustomFunctionInOtherModule&lt;/a&gt;&lt;/li&gt;</pre>
+<pre>        &lt;li&gt;some plain text here&lt;/li&gt;</pre>
+<pre>        &lt;li&gt;&lt;a href='http://foobar.com'&gt;other important stuff&lt;/a&gt;&lt;/li&gt;</pre>
+<pre>        &lt;li&gt;&lt;a href='http://alpha/beta/'&gt;http://alpha/beta/&lt;/a&gt;&lt;/li&gt;</pre>
+<pre>        &lt;/ul&gt;</pre>
+<br/>
+    The MSDN references are retrieved automatically from two fixed MSDN reference pages (one for cmdlets and one for "about" topics).  If those fixed references ever change URLs, that will break the generator; update those URLs in the Get-CmdletDocLinks function to mend it.
+<br/>
+<br/>
+<strong>    ==== Output Enhancements: Formatting ====</strong>
+<br/>
+<br/>
+    Convert-HelpToHtmlTree also adds some simple CSS styling to the generated web pages, making the generated web pages much more user-friendly than the plain mono-spaced text output of Get-Help viewed in a PowerShell window. Viewing help from within Show-Command is only minimally better than Get-Help, adding some bold markup. Convert-HelpToHtmlTree, on the other hand:
+<br/>
+    + Adds section headings to each of the main sections within help.
+<br/>
+    + Outputs most text in proportional font, automatically flowing lines and wrapping at your browser width.
+<br/>
+    + Outputs portions of text you designate in a fixed-width font; simply start a line with 4 spaces for this (useful typically for code samples).
+<br/>
+    + Recognizes simple lists; any line beginning with an asterisk, plus, or minus will force a line break.
+<br/>
+    + Recognizes simple headers; any line beginning or ending with a run of 4 of any of these characters (=_+*#~-) will be emboldened and force a line break.
+<br/>
+    + Highlights initial code sample in each example. (Note that, just like Get-Help, ONLY the first line immediately following the .EXAMPLE directive is treated as the code sample, so resist the urge to put line breaks in your sample!)
+<br/>
+    + Stylizes the syntax section with bold and italics for easier visual recognition.
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>PARAMETERS</h2>
+<div>
+    -Namespaces &lt;String[]&gt;
+<pre>        One or more names of top-level directories under your user-level</pre>
+<pre>        module repository (...Documents\WindowsPowerShell\Modules) to document.</pre>
+<pre>        Wilcards are permitted.</pre>
+<br/>
+<pre>        Required?                    true</pre>
+<pre>        Position?                    1</pre>
+<pre>        Default value                </pre>
+<pre>        Accept pipeline input?       false</pre>
+<pre>        Accept wildcard characters?  false</pre>
+<br/>
+    -TargetDir &lt;String&gt;
+<pre>        Directory name to store the generated HTML documentation set.</pre>
+<pre>        If not supplied, the current directory is used.</pre>
+<br/>
+<pre>        Required?                    false</pre>
+<pre>        Position?                    2</pre>
+<pre>        Default value                .</pre>
+<pre>        Accept pipeline input?       false</pre>
+<pre>        Accept wildcard characters?  false</pre>
+<br/>
+    -TemplateName &lt;String&gt;
+<pre>        Name of your custom template file to use to generate each HTML file.</pre>
+<pre>        If not supplied, the default template (psdoc_template.html) is used;</pre>
+<pre>        it is stored in the same directory as this module file.</pre>
+<br/>
+<pre>        Required?                    false</pre>
+<pre>        Position?                    3</pre>
+<pre>        Default value                </pre>
+<pre>        Accept pipeline input?       false</pre>
+<pre>        Accept wildcard characters?  false</pre>
+<br/>
+    -DocTitle &lt;String&gt;
+<pre>        The value of DocTitle fills in the TITLE place holder on the overview page</pre>
+<pre>        and the SUBTITLE place holder on all subordinate pages.</pre>
+<pre>        The current namespace is affixed to the beginning, e.g.</pre>
+<pre>        with a namespace of "Abc" and a DocTitle of "Libraries v1.0", the </pre>
+<pre>        value that is substituted in the template is "Abc Libraries v1.0".</pre>
+<pre>        If not supplied, the value would be the more generic "Abc Namespace".</pre>
+<pre>        Using the default template, DocTitle appears in the web page title </pre>
+<pre>        and in the main heading for the home (overview) page.</pre>
+<pre>        It is also used on top of the heading of each subordinate page </pre>
+<pre>        in a smaller font to provide context.</pre>
+<br/>
+<pre>        Required?                    false</pre>
+<pre>        Position?                    4</pre>
+<pre>        Default value                </pre>
+<pre>        Accept pipeline input?       false</pre>
+<pre>        Accept wildcard characters?  false</pre>
+<br/>
+    -Copyright &lt;String&gt;
+<pre>        The value of Copyright fills in the COPYRIGHT place holder on each page.</pre>
+<pre>        Using the default template, Copyright appears at the bottom of each page.</pre>
+<pre>        If you do not intend to supply this value edit the default template</pre>
+<pre>        to remove the rest of the copyright phrase.</pre>
+<br/>
+<pre>        Required?                    false</pre>
+<pre>        Position?                    5</pre>
+<pre>        Default value                </pre>
+<pre>        Accept pipeline input?       false</pre>
+<pre>        Accept wildcard characters?  false</pre>
+<br/>
+    -RevisionDate &lt;String&gt;
+<pre>        The value of RevisionDate fills in the REVDATE place holder on each page.</pre>
+<pre>        Using the default template, RevisionDate appears at the bottom of each page.</pre>
+<pre>        If you do not intend to supply this value edit the default template</pre>
+<pre>        to remove the rest of the revision date phrase.</pre>
+<br/>
+<pre>        Required?                    false</pre>
+<pre>        Position?                    6</pre>
+<pre>        Default value                </pre>
+<pre>        Accept pipeline input?       false</pre>
+<pre>        Accept wildcard characters?  false</pre>
+<br/>
+    -WhatIf [&lt;SwitchParameter&gt;]
+<br/>
+<br/>
+<pre>        Required?                    false</pre>
+<pre>        Position?                    named</pre>
+<pre>        Default value                </pre>
+<pre>        Accept pipeline input?       false</pre>
+<pre>        Accept wildcard characters?  false</pre>
+<br/>
+    -Confirm [&lt;SwitchParameter&gt;]
+<br/>
+<br/>
+<pre>        Required?                    false</pre>
+<pre>        Position?                    named</pre>
+<pre>        Default value                </pre>
+<pre>        Accept pipeline input?       false</pre>
+<pre>        Accept wildcard characters?  false</pre>
+<br/>
+    &lt;CommonParameters&gt;
+<pre>        This cmdlet supports the common parameters: Verbose, Debug,</pre>
+<pre>        ErrorAction, ErrorVariable, WarningAction, WarningVariable,</pre>
+<pre>        OutBuffer, PipelineVariable, and OutVariable. For more information, see </pre>
+<pre>        about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216). </pre>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>INPUTS</h2>
+<div>
+    None. You cannot pipe objects to Convert-HelpToHtmlTree.
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>OUTPUTS</h2>
+<div>
+    None. Convert-HelpToHtmlTree does not generate any output.
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>EXAMPLES</h2>
+<div>
+<br/>
+<strong>    -------------------------- EXAMPLE 1 --------------------------</strong>
+<br/>
+<br/>
+    <span class='pscmd'>PS&gt;Convert-HelpToHtmlTree -Namespaces "MyPsEnhancements" -TargetDir "API"</span>
+<br/>
+<br/>
+    Generates documentation for the modules under
+    ...\My Documents\WindowsPowerShell\Modules\MyPsEnhancements to the relative path "API"
+    using the default template, omitting replacement values for DocTitle, Copyright, or RevisionDate.
+<br/>
+<br/>
+<strong>    -------------------------- EXAMPLE 2 --------------------------</strong>
+<br/>
+<br/>
+    <span class='pscmd'>PS&gt;Convert-HelpToHtmlTree -Namespaces "Html","Files" -TemplateName "C:\myfiles\psdoc_template.html" -TargetDir "c:\temp\psdoc_tmp" -DocTitle 'PowerShell Libraries v1.5.1 API' -Copyright '2011' -RevisionDate '2011.12.13'</span>
+<br/>
+<br/>
+    This uses ...\My Documents\WindowsPowerShell\Modules\Html and
+    ...\My Documents\WindowsPowerShell\Modules\Files as source namespaces and
+    generates output into c:\temp\psdoc_tmp.  The pages use the specified template
+    rather than the default template.  Values are given for the document title/home
+    page header, the copyright date and the revision date.
+<br/>
+<br/>
+<strong>    -------------------------- EXAMPLE 3 --------------------------</strong>
+<br/>
+<br/>
+    <span class='pscmd'>PS&gt;Convert-HelpToHtmlTree * API</span>
+<br/>
+<br/>
+    Scans all namespace-aware directories under ...\WindowsPowerShell\Modules
+    and generates documentation for them in a local subdirectory called API.
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>RELATED LINKS</h2>
+<ul>
+<li><a href='https://technet.microsoft.com/en-us/library/dd819489.aspx'>about_Comment_Based_Help</a></li>
+<li><a href='http://technet.microsoft.com/en-us/library/dd347616.aspx'>About Help Topics</a></li>
+<li><a href='http://technet.microsoft.com/en-us/library/dd347701.aspx'>Cmdlet Help Topics</a></li>
+<li><a href='https://www.simple-talk.com/sysadmin/powershell/how-to-document-your-powershell-library/'>How To Document Your PowerShell Library with Convert-HelpToHtmlTree</a></li>
+<li><a href='https://www.simple-talk.com/dotnet/software-tools/documenting-your-powershell-binary-cmdlets/'>Documenting Your PowerShell Binary Cmdlets</a></li>
+</ul></div>
+
+
+
+
+
+<p><i>
+This documentation set was created with CleanCode's
+<a target="_blank" href="https://github.com/msorens/DocTreeGenerator">DocTreeGenerator</a>.
+</i></p>
+
+
+</body>
+</html>
+

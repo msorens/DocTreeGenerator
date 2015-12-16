@@ -47,18 +47,24 @@ Set-StrictMode -Version Latest
 Generates API documentation in HTML format for one or more PowerShell namespaces.
 
 .DESCRIPTION
-Convert-HelpToHtmlTree generates a complete API in HTML format (similar to Sandcastle for .NET or javadoc for Java) for your PowerShell libraries.  You specify (via the Namespaces parameter) which PowerShell modules to document. The modules must be installed as user modules (i.e. in C:\Users\username\Documents\WindowsPowerShell\Modules) rather than system modules (i.e. C:\Windows\System32\WindowsPowerShell\v1.0\Modules).  See "Storing Modules on Disk" at http://msdn.microsoft.com/en-us/library/dd878324%28v=vs.85%29.aspx as well as "Installing Modules" in my Simple-Talk.com article at http://www.simple-talk.com/dotnet/.net-tools/further-down-the-rabbit-hole-powershell-modules-and-encapsulation/#seventh.
+Convert-HelpToHtmlTree generates a complete API in HTML format (similar to Sandcastle for .NET or javadoc for Java) for your PowerShell libraries. As with an API documentation generator for any language, the output you get is only as good as the input you provide. But Convert-HelpToHtmlTree needs little additional information than good coding practice already dictates. If you have designed your modules to display proper help when you invoke the standard Get-Help cmdlet you have already done most everything you need to use Convert-HelpToHtmlTree. If you run Convert-HelpToHtmlTree with totally undecorated source files it will generate the full API tree, but instead of detailed descriptions of each function in your library you will get only a concise syntax diagram--just as Get-Help would do. With Convert-HelpToHtmlTree, you will also get a slew of warning messages telling you what key pieces of documentation you are missing.
 
-As with an API documentation generator for any language, the output you get is only as good as the input you provide.
-But Convert-HelpToHtmlTree needs little additional information than good coding practice already dictates. If you have designed your modules to display proper help when you invoke the standard Get-Help cmdlet you have already done most everything you need to use Convert-HelpToHtmlTree.
-If you run Convert-HelpToHtmlTree with totally undecorated source files it will generate the full API tree, but instead of detailed descriptions of each function in your library you will get only a concise syntax diagram--just as Get-Help would do. With Convert-HelpToHtmlTree, you will also get a slew of warning messages telling you what key pieces of documentation you are missing.
+Convert-HelpToHtmlTree supports PowerShell scripted modules (those written in PowerShell) as well as PowerShell binary modules (those written in C#).
 
-To learn how to decorate your source modules properly for Get-Help and Convert-HelpToHtmlTree, start with the PowerShell help topic "about_Comment_Based_Help".  Scroll down to the "Syntax for Comment-Based Help in Functions" section.  Note that the page also talks about adding help for the script itself; that applies only to main scripts (ps1 files) not to modules (psm1 files). Convert-HelpToHtmlTree works only with modules, not with scripts. Best practices dictate that for any substantive code, you will want to use modules in any case. And be sure to use Export-ModuleMember to explicitly specify which functions are public functions within your module; omitting it makes *all* your functions public by default.
+To get started with decorating your scripted modules properly for Get-Help and Convert-HelpToHtmlTree, start with the PowerShell help topic "about_Comment_Based_Help".  Scroll down to the "Syntax for Comment-Based Help in Functions" section.  Note that the page also talks about adding help for the script itself; that applies only to main scripts (ps1 files) not to modules (psm1 files). Convert-HelpToHtmlTree works only with modules, not with scripts. Best practices dictate that for any substantive code, you will want to use modules in any case. And be sure to use Export-ModuleMember to explicitly specify which functions are public functions within your module; omitting it makes *all* your functions public by default.
 
-=== File Organization ===
+To get started with decorating your binary modules, you need to do an additional step of preparing a help file for PowerShell to consume. If you use the open-source XmlDoc2CmdletDoc utility, the process is very easy: you decorate your C# code like your PowerShell code, then run one command and you're done. (There are a variety of other tools out there that are much more manual in terms of hand-crafting a MAML file.) See my reference and tutorial on XmlDoc2CmdletDoc at https://www.simple-talk.com/dotnet/software-tools/documenting-your-powershell-binary-cmdlets/.
+
+You specify (via the Namespaces parameter) which PowerShell modules to document. The modules must be installed as user modules (i.e. in C:\Users\username\Documents\WindowsPowerShell\Modules) rather than system modules (i.e. C:\Windows\System32\WindowsPowerShell\v1.0\Modules).  See "Storing Modules on Disk" at http://msdn.microsoft.com/en-us/library/dd878324%28v=vs.85%29.aspx as well as "Installing Modules" in my Simple-Talk.com article at http://www.simple-talk.com/dotnet/.net-tools/further-down-the-rabbit-hole-powershell-modules-and-encapsulation/#seventh.
+
+See my article "How To Document Your PowerShell Library" at https://www.simple-talk.com/sysadmin/powershell/how-to-document-your-powershell-library/ for a walk-through of using Convert-HelpToHtmlTree.
+
+For simplicity, the discussion below focuses on cmdlets written in PowerShell, but the concepts map directly to doc-comments in your C# code as well.
+
+==== File Organization ====
 
 Convert-HelpToHtmlTree needs some additional doc-comments to generate a cohesive API for you.
-(1) Each module (x.psm1) must have an associated manifest (x.psd1) in the same directory and the manifest must include a Description property.
+(1) Each module (x.psm1 or x.dll) must have an associated manifest (x.psd1) in the same directory and the manifest must include a Description property.
 (2) Each module must have an associated overview (module_overview.html) in the same directory. This is a standard HTML file.  The contents of the <body> element are extracted verbatim as the introductory text of the index.html page for each module.
 (3) Each namespace must also include an associated overview (namespace_overview.html).  This is a standard HTML file.  The contents of the <body> element are extracted verbatim as the introductory text of each namespace in the master index.html page.
 
@@ -153,7 +159,7 @@ Convert-HelpToHtmlTree reports its progress as it runs, indicating each module a
 
 At the end of the run it also reports the number of namespaces, modules, functions, and total files processed.
 
-=== Documentation Template ===
+==== Documentation Template ====
 
 Take a look at the default template (see TemplateName parameter) and you will find it sprinkled with place holders that are automatically filled in at runtime (surrounded by braces): title, subtitle, breadcrumbs, preamble, body, postscript, copyright, and revdate.  Also, there are module-specific place holders of the form {module.propertyname} where "propertyname" may be any of the standard properties of a module -- use this to see the list of properties:
 	Get-Module | Get-Member
@@ -169,9 +175,9 @@ You will also see conditional section definitions of the form
 + the function pages, one per exported function ("function").
 The content of these conditional sections (which may be any HTML) is included only on the pages of the corresponding type, while the other conditional sections are suppressed.  Note that the module-specific place holders discussed earlier (e.g. {module.xyz}) may be used in module pages or function pages only.
 
-=== Output Enhancements: Live links ===
+==== Output Enhancements: Live links ====
 
-Unlike the MSDN pages for the standard PowerShell library, output generated by this function makes live links in your references (.LINK) documentation section.  There are seven classes of input you can specify, shown below.  In order, they are MSDN-defined (built-in) cmdlet, MSDN-defined (built-in) topic, custom function in the same module, custom function in a different local module (not yet implemented), plain text, explicit link with a label, and explicit link without a label.
+Unlike the MSDN pages for the standard PowerShell library, output generated by Convert-HelpToHtmlTree  makes live links in your references (.LINK) documentation section.  There are seven classes of input you can specify, shown below.  In order, they are MSDN-defined (built-in) cmdlet, MSDN-defined (built-in) topic, custom function in the same module, custom function in a different local module (not yet implemented), plain text, explicit link with a label, and explicit link without a label.
 
 	Get-ChildItem
 	about_Aliases
@@ -195,14 +201,16 @@ This output is generated from the above input:
 
 The MSDN references are retrieved automatically from two fixed MSDN reference pages (one for cmdlets and one for "about" topics).  If those fixed references ever change URLs, that will break the generator; update those URLs in the Get-CmdletDocLinks function to mend it.
 
-=== Output Enhancements: Formatting ===
+==== Output Enhancements: Formatting ====
 
 Convert-HelpToHtmlTree also adds some simple CSS styling to the generated web pages, making the generated web pages much more user-friendly than the plain mono-spaced text output of Get-Help viewed in a PowerShell window. Viewing help from within Show-Command is only minimally better than Get-Help, adding some bold markup. Convert-HelpToHtmlTree, on the other hand:
 + Adds section headings to each of the main sections within help.
-+ Outputs most text in proportional font.
-+ Outputs portions of text you designate (via leading white space on a line) in a fixed-width font.
-+ Preserves your line breaks. (So if you want text to flow and wrap automatically at the window edge you must put it all in a single paragraph in your source file.)
++ Outputs most text in proportional font, automatically flowing lines and wrapping at your browser width.
++ Outputs portions of text you designate in a fixed-width font; simply start a line with 4 spaces for this (useful typically for code samples).
++ Recognizes simple lists; any line beginning with an asterisk, plus, or minus will force a line break.
++ Recognizes simple headers; any line beginning or ending with a run of 4 of any of these characters (=_+*#~-) will be emboldened and force a line break.
 + Highlights initial code sample in each example. (Note that, just like Get-Help, ONLY the first line immediately following the .EXAMPLE directive is treated as the code sample, so resist the urge to put line breaks in your sample!)
++ Stylizes the syntax section with bold and italics for easier visual recognition.
 
 .PARAMETER TargetDir
 Directory name to store the generated HTML documentation set.
@@ -273,12 +281,10 @@ about_Comment_Based_Help
 [About Help Topics] (http://technet.microsoft.com/en-us/library/dd347616.aspx)
 .LINK
 [Cmdlet Help Topics] (http://technet.microsoft.com/en-us/library/dd347701.aspx)
-
-.NOTES
-This function is part of the CleanCode toolbox
-from http://cleancode.sourceforge.net/.
-
-Since CleanCode 1.1.01.
+.LINK
+[How To Document Your PowerShell Library with Convert-HelpToHtmlTree](https://www.simple-talk.com/sysadmin/powershell/how-to-document-your-powershell-library/)
+.LINK
+[Documenting Your PowerShell Binary Cmdlets](https://www.simple-talk.com/dotnet/software-tools/documenting-your-powershell-binary-cmdlets/)
 
 #>
 
