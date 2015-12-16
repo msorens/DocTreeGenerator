@@ -37,6 +37,5 @@ on Simple-Talk.com: [How To Document Your PowerShell Library](https://www.simple
 
 You can see a real-world example of its use on my open source website, showing a tree complete with an index to all functions and modules:
 ![CleanCode PowerShell Libraries](http://cleancode.sourceforge.net/api/powershell/)
-And adjacent to this "readme" file is a rendering of the help for Convert-HelpToHtmlTree itself:
-![DocTreeGenerator API](https://github.com/msorens/DocTreeGenerator/Convert-HelpToHtmlTree.html)
+And adjacent to this "readme" file is a rendering of the help for Convert-HelpToHtmlTree itself (Convert-HelpToHtmlTree.html).
 
