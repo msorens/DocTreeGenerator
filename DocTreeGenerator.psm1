@@ -1,4 +1,4 @@
-﻿# Copyright (c) 2014-2015 Michael Sorens
+# Copyright (c) 2014-2015 Michael Sorens
 # https://github.com/msorens/DocTreeGenerator
 #
 #requires -version 3.0
