@@ -271,7 +271,7 @@ function Convert-HelpToHtmlTree
 	$Namespaces |
 	# Convert wildcards (if any) in Namespaces parameter to instances
 	% {
-		Get-ChildItem (Get-UserPsModulePath) $_	} |
+		Get-ChildItem $moduleRoot $_ } |
 	% {
 		$namespace = $_.Name # Grab name out of DirectoryInfo object
 		Write-Host "Namespace: $namespace"
@@ -279,7 +279,7 @@ function Convert-HelpToHtmlTree
 		$script:moduleSummary = @{}
 		if ($DocTitle) { $title = "{0} {1}" -f $namespace, $DocTitle }
 		else { $title = "$namespace Namespace"}
-		$namespaceDir = Join-Path (Get-UserPsModulePath) $namespace
+		$namespaceDir = Join-Path $moduleRoot $namespace
 		$saveModuleCount = $moduleCount
 		Get-ChildItem $namespaceDir |
 			? { $_.PsIsContainer } |
@@ -297,7 +297,7 @@ function Convert-HelpToHtmlTree
 	if ($DocTitle) { $title = $DocTitle }
 	else { $title = "PowerShell API" }
 	if ($Namespaces.Count -eq 1) { $title = "{0} {1}" -f $Namespaces[0],$title }
-	Generate-HomePage $title
+	Generate-HomePage $moduleRoot $title
 	Generate-ContentsPage $title
 	if ($noModulesFlagged) {
 		write-warning "Note that 'No modules found' typically indicates your"
@@ -332,6 +332,8 @@ function Init-Variables()
 	$script:namespace_overview_filename = "namespace_overview.html"
 	$script:module_overview_filename    = "module_overview.html"
 	$script:default_template            = "$PSScriptRoot\Templates\psdoc_template.html"
+
+	$script:moduleRoot = Get-UserPsModulePath
 
 	# Get the name of *this* module because it requires special handling.
 	if ($script:MyInvocation.MyCommand.Path -match "Modules\\(.*)\\\w*.psm1")
@@ -497,14 +499,14 @@ function Generate-ModulePage($qualifiedModName, $moduleName, $moduleDocPath, $pa
 		-parentUrl "index.html"
 }
 
-function Generate-HomePage($title)
+function Generate-HomePage($path, $title)
 {
 	Write-Host "Generating home page..."
 	$body = $namespaceSummary.Keys | Sort  | % {
 		$namespace = $_
 		$headLevel = 2
 		Get-HtmlHead "$namespace Namespace" $headLevel
-		Get-NamespacePreamble (join-path (Get-UserPsModulePath) $namespace)
+		Get-NamespacePreamble (join-path $path $namespace)
 		$moduleItems = $namespaceSummary[$namespace]
 		Get-HtmlTable (
 			$moduleItems.Keys | Sort |
@@ -637,7 +639,7 @@ function Get-Overview($path, $filename)
 # Trim off the module directory prefix.
 function Get-RelevantPath($path)
 {
-	$path.substring((Get-UserPsModulePath).Length+1)
+	$path.substring($moduleRoot.Length+1)
 }
 
 function Handle-MissingValue($message)
