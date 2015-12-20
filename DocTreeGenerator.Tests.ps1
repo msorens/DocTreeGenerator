@@ -120,26 +120,143 @@ Describe 'Convert-HelpToHtmlTree' {
 	Context 'Template available' {
 		Mock Get-Content
 
-		It 'Uses default if none supplied' {
-			Get-Template $null 'default'
+		It 'Uses default if parameter not supplied' {
+			$script:TemplateName = $null
+			Get-Template 'default'
 			Assert-MockCalled Get-Content 1 { $Path -eq 'default' } -Scope It
 		}
 
 		It 'Uses supplied value when default supplied' {
-			Get-Template 'foo' 'default'
+			$script:TemplateName = 'foo'
+			Get-Template 'default'
 			Assert-MockCalled Get-Content 1 { $Path -eq 'foo' } -Scope It
 		}
 
 		It 'Uses supplied value when default not supplied' {
-			Get-Template 'foo'
+			$script:TemplateName = 'foo'
+			Get-Template
 			Assert-MockCalled Get-Content 1 { $Path -eq 'foo' } -Scope It
 		}
 	}
 
 	Context 'Template not available' {
-		It 'Reports error if template not found' {
-			{ Get-Template 'any' } | Should Throw 'Cannot find path'
+
+		It 'Reports error if default template not found' {
+			$script:TemplateName = $null
+			{ Get-Template 'non-existent-file' } | Should Throw 'Cannot find path'
 		}
+
+		It 'Reports error if supplied template not found' {
+			$script:TemplateName = 'non-existent-file'
+			{ Get-Template } | Should Throw 'Cannot find path'
+		}
+	}
+
+	Context 'Links' {
+		Mock Get-Template { "any" }
+		$stdTestCases = @(
+			@{ template = '{0}'; description = 'no extra spaces'}
+			@{ template = '  {0}'; description = 'extra spaces at start of line'}
+			@{ template = '{0} '; description = 'extra spaces at end of line'}
+		)
+
+		It 'Generates link for standard cmdlet with <description>' -TestCases $stdTestCases {
+			param ($template, $description)
+			$url = 'http://any.com'
+			$cmdlet = 'Get-ChildItem'
+			$inputText = $template -f $cmdlet
+			Mock Get-CmdletDocLinks { return @{ $cmdlet = $url } }
+			Init-Variables
+
+			Add-Links 'any' $inputText | Should Be "<li><a href='$url'>$cmdlet</a></li>"
+		}
+
+		It 'Generates link for "about" topic with <description>' -TestCases $stdTestCases {
+			param ($template, $description)
+			$url = 'http://any.com'
+			$aboutTopic = 'about_Aliases'
+			$inputText = $template -f $aboutTopic
+			Mock Get-CmdletDocLinks { return @{ $aboutTopic = $url } }
+			Init-Variables
+
+			Add-Links 'any' $inputText | Should Be "<li><a href='$url'>$aboutTopic</a></li>"
+		}
+
+		It 'Generates link for custom function in same module with <description>' -TestCases $stdTestCases {
+			param ($template, $description)
+			$currModule = 'myModule'
+			$cmd = 'New-Frobdingnab'
+			$inputText = $template -f $cmd
+			Mock Get-CmdletDocLinks { return @{ } }
+			Mock Get-Command `
+				-MockWith { return @{
+					ModuleName = $currModule
+					Module = @{ Path = 'gparent\parent\self'} # any -- not used
+				} } `
+				-ParameterFilter { $Name -eq $cmd }
+			Init-Variables
+
+			Add-Links $currModule $inputText | Should Be "<li><a href='$cmd.html'>$cmd</a></li>"
+		}
+
+		It 'Generates link for custom function in different module with <description>' -TestCases $stdTestCases {
+			param ($template, $description)
+			$someModule = 'someModule'
+			$namespace = 'someNS'
+			$cmd = 'New-Frobdingnab'
+			$inputText = $template -f $cmd
+			Mock Get-CmdletDocLinks { return @{ } }
+			Mock Get-Command `
+				-MockWith { return @{
+					ModuleName = $someModule
+					Module = @{ Path = "$namespace\$someModule\$someModule.psm1"}
+				} } `
+				-ParameterFilter { $Name -eq $cmd }
+			Init-Variables
+
+			Add-Links 'currentModule' $inputText |
+				Should Be "<li><a href='../../$namespace/$someModule/$cmd.html'>$cmd</a></li>"
+		}
+
+		It 'Generates no link for plain text with <description>' -TestCases $stdTestCases {
+			param ($template, $description)
+			$plainText = 'not a cmdlet'
+			$inputText = $template -f $plainText
+			Mock Get-CmdletDocLinks { return @{ } }
+			Init-Variables
+
+			Add-Links 'any' $inputText | Should Be "<li>$plainText</li>"
+		}
+
+		$testCases = @(
+			@{ template = '[{0}]({1})'; description = 'no extra spaces'}
+			@{ template = '[ {0}  ]({1})'; description = 'extra spaces in label'}
+			@{ template = '[{0}](  {1} )'; description = 'extra spaces in url'}
+			@{ template = '[{0}]  ({1})'; description = 'extra spaces between label and url'}
+			@{ template = '[{0}]({1})  '; description = 'extra spaces at end of line'}
+			@{ template = '  [{0}]({1})'; description = 'extra spaces at start of line'}
+		)
+		It 'Generates link for explicit link with label with <description>' -TestCases $testCases {
+			param ($template, $description)
+			$url = 'http://any.com'
+			$label = 'explicit label'
+			$inputText = $template -f $label, $url
+			Mock Get-CmdletDocLinks { return @{ } }
+			Init-Variables
+
+			Add-Links 'any' $inputText | Should Be "<li><a href='$url'>$label</a></li>"
+		}
+
+		It 'Generates link for explicit link without label with <description>' -TestCases $stdTestCases {
+			param ($template, $description)
+			$url = 'http://any.com'
+			$inputText = $template -f $url
+			Mock Get-CmdletDocLinks { return @{ } }
+			Init-Variables
+
+			Add-Links 'any' $inputText | Should Be "<li><a href='$url'>$url</a></li>"
+		}
+
 	}
 }
 }
