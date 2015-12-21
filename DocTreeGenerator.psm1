@@ -773,7 +773,7 @@ function ConvertTo-Body($sectionHash, $sectionOrder, $helpItem, $moduleName)
 		}
 		elseif ($sectionName -eq "PARAMETERS")
 		{
-			$section += Get-HtmlDiv (ApplyIndents (StylizeParameters (HtmlEncode $sectionHash[$sectionName])))
+			$section += Get-HtmlDiv (ApplyIndents (CorrectIndents (HtmlEncode $sectionHash[$sectionName])))
 		}
 		else { $section += Get-HtmlDiv (ApplyIndents (HtmlEncode $sectionHash[$sectionName])) }
 		Get-HtmlDiv $section -Class $CSS_PS_DOC_SECTION
@@ -840,6 +840,69 @@ function Get-CmdletDocLinks($referenceWebPage, $topicRegex)
 
 ########################### HTML Support #############################
 
+function ApplyIndents ([string[]]$text)
+{
+	$listMarks = '*+-'
+	$headerMarks = '=_+*#~-'
+	$blanks = 0; # tracks consecutive blank lines in input
+	$breaks = 0; # tracks breaks emitted in output
+	$lineBreak = Get-HtmlLineBreak
+	$text | % {
+		if ($_ -match '^\s*$') {
+			if ($blanks++ -eq 0) { EmitBreaksTo(2); $breaks = 2 } # add just one in HTML
+		}
+		else {
+			$blanks = 0
+			# Most lines (output of Get-Help) will have a 4-char indent 
+			if ($_ -match '^\s{4}(?:\s{4}|\t)') { # <pre> counts as a break!
+				Get-HtmlPre $_
+				$breaks = 1
+			}
+			elseif ($_ -match "^\s*[$headerMarks]{4}|[$headerMarks]{4}\s*$") {
+				EmitBreaksTo(1)
+				Get-HtmlBold $_
+				$lineBreak
+				$breaks = 1
+			}
+			elseif ($_ -match "^\s*[$listMarks]") {
+				EmitBreaksTo(1)
+				$_
+				$lineBreak
+				$breaks = 1
+			}
+			else  {
+				$_
+			   	$breaks = 0
+			}
+		}
+	}
+}
+
+function CorrectIndents([string[]]$text)
+{
+	$inParamDescription = $false
+	$text | % {
+		if ($_ -match '^(\s*-)(.+)') {
+			$inParamDescription = $true
+			$Matches[1] + (Get-HtmlBold $Matches[2]) # add some highlight
+		}
+		elseif ($inParamDescription -and $_ -match '^\s*Required\?') { # Constant after description
+			$inParamDescription = $false
+			$_ # be sure to emit it, too!
+		}
+		elseif ($inParamDescription -and $_ -match '^\s*(.*)') {
+		   	$Matches[1] # remove the leading spaces here so it becomes regular, wrapped text
+		}
+		else { $_ }
+	}
+}
+
+function EmitBreaksTo($count) {
+	$lineBreak = Get-HtmlLineBreak
+	while ($breaks++ -lt $count) { $lineBreak }
+}
+
+
 function Join-HtmlPath([String[]]$path)
 {
 	$path -join "/"
@@ -852,8 +915,11 @@ function Get-HtmlLink($href, $value)
 
 function Get-HtmlCell([String]$text, [int]$columnCount)
 {
-	if ($columnCount) {"     <td colspan='{0}' bgcolor='#CCCCCC'>{1}</td>" -f $columnCount, $text }
-	else { "    <td>{0}</td>" -f $text} }
+	if ($columnCount) {
+		"     <td colspan='{0}' bgcolor='#CCCCCC'>{1}</td>" -f $columnCount, $text
+	}
+	else { "    <td>{0}</td>" -f $text }
+}
 
 function Get-HtmlRow([String[]]$items, [int]$columnCount)
 {
@@ -884,56 +950,10 @@ function Get-HtmlPara([string[]]$text, $class)
 	"<p{1}>{0}</p>`n" -f [string]::join("`n", $text), $class
 }
 
-function ApplyIndents ([string[]]$text)
-{
-	$listMarks = '*+-'
-	$headerMarks = '=_+*#~-'
-	$blanks = 0; # tracks consecutive blank lines in input
-	$breaks = 0; # tracks breaks emitted in output
-	$text | % {
-		if ($_ -match '^\s*$') {
-			if ($blanks++ -eq 0) { EmitBreaksTo(2); $breaks = 2 } # add just one in HTML
-		}
-		else {
-			$blanks = 0
-			# Most lines (output of Get-Help) will have a 4-char indent 
-			if ($_ -match '^\s{4}(?:\s{4}|\t)') { # <pre> counts as a break!
-				Get-HtmlPre $_
-				$breaks = 1
-			}
-			elseif ($_ -match "^\s*[$headerMarks]{4}|[$headerMarks]{4}\s*$") {
-				EmitBreaksTo(1)
-				Get-HtmlBold $_
-				"<br/>"
-				$breaks = 1
-			}
-			elseif ($_ -match "^\s*[$listMarks]") {
-				EmitBreaksTo(1)
-				$_
-				"<br/>"
-				$breaks = 1
-			}
-			else  {
-				$_
-			   	$breaks = 0
-			}
-		}
-	}
-}
-
-function EmitBreaksTo($count) {
-	while ($breaks++ -lt $count) { "<br/>" }
-}
-
 function Get-HtmlPre($text)
 {
 	# allow for possible array with join
 	"<pre>{0}</pre>" -f [string]::join("`n", $text)
-}
-
-function Get-HtmlItalic($text)
-{
-	"<i>{0}</i>" -f $text
 }
 
 function Get-HtmlBold([string]$text)
@@ -979,25 +999,6 @@ function HtmlEncodeAndStylizeSyntax($text)
 {
 	$text -replace '<(.*?)>','<i>&lt;$1&gt;</i>' `
 		-replace '^\s*(\S+)','<b>$1</b>'
-}
-
-function StylizeParameters([string[]]$text)
-{
-	$inParamDescription = $false
-	$text | % {
-		if ($_ -match '^(\s*-)(.+)') {
-			$inParamDescription = $true
-			$Matches[1] + (Get-HtmlBold $Matches[2]) # add some highlight
-		}
-		elseif ($inParamDescription -and $_ -match '^\s*Required\?') { # Constant after description
-			$inParamDescription = $false
-			$_ # be sure to emit it, too!
-		}
-		elseif ($inParamDescription -and $_ -match '^\s*(.*)') {
-		   	$Matches[1] # remove the leading spaces here so it becomes regular, wrapped text
-		}
-		else { $_ }
-	}
 }
 
 Export-ModuleMember Convert-HelpToHtmlTree
