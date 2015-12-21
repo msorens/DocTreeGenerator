@@ -256,7 +256,89 @@ Describe 'Convert-HelpToHtmlTree' {
 
 			Add-Links 'any' $inputText | Should Be "<li><a href='$url'>$url</a></li>"
 		}
+	}
 
+	Context 'Parameters' {
+		$8space = '        '
+		$stdProperties  = @(
+			$8space
+			"$($8space)Required?                    false"
+			"$($8space)Position?                    3"
+			"$($8space)Default value"
+			"$($8space)Accept pipeline input?       false"
+			"$($8space)Accept wildcard characters?  false"
+		)
+		$stdDescription = @(
+			"$($8space)para one, line one."
+			"$($8space)para one, line two."
+			$8space
+			"$($8space)para two."
+		)
+
+		function GenerateText([string]$paramName, [string[]]$description)
+		{
+			$text = ,"  -$paramName"
+			if ($description) {
+				$description | % { $text += $_ }
+			}
+			$stdProperties | % { $text += $_ }
+			$text
+		}
+
+		It 'Emboldens parameter name by itself' {
+			$paramName = 'SomeParam'
+			$text = "  -$paramName"
+			StylizeParameters $text | Should Be "  -<strong>$paramName</strong>"
+		}
+
+		It 'Emboldens parameter name with properties' {
+			$paramName = 'SomeParam'
+			(StylizeParameters (GenerateText $paramName)) -join '' |
+				Should Match "^  -<strong>$paramName</strong>"
+		}
+
+		It 'Emboldens parameter name with description and properties' {
+			$paramName = 'SomeParam'
+			(StylizeParameters (GenerateText $paramName $stdDescription)) -join '' |
+				Should Match "^  -<strong>$paramName</strong>"
+		}
+
+		It 'Separates parameter name from properties with blank line' {
+			$paramName = 'SomeParam'
+			$result = StylizeParameters (GenerateText $paramName)
+			$result.Count | Should Be ($stdProperties.Count + 1)
+			$result[0] | Should Match $paramName
+			$result[1] | Should BeNullOrEmpty
+			$result[2] | Should Match 'Required'
+		}
+
+		It 'Retains leading spaces on properties' {
+			$paramName = 'SomeParam'
+			(StylizeParameters (GenerateText $paramName)) -join '' |
+				Should Match "$($8space)Required.*$($8space)Position.*$($8space)Default.*($8space)Accept pipeline.*($8space)Accept wildcard"
+		}
+
+		It 'Strips leading spaces from description but retains spaces on properties' {
+			$paramName = 'SomeParam'
+			$result = (StylizeParameters (GenerateText $paramName $stdDescription))
+			$result.Count | Should Be ($stdProperties.Count + $stdDescription.Count +  1)
+
+			$result[0] | Should Match $paramName
+
+			$startingIndex = 1 # i.e. skip param name
+			for ($i = 0; $i -lt $stdDescription.Length; $i++) {
+				$result[$i+$startingIndex] |
+					Should Be $stdDescription[$i].TrimStart() # i.e. spaces are now gone
+			}
+
+			$startingIndex = 1 + $stdDescription.Length # i.e. skip param name & desc
+
+			$result[$startingIndex] | Should BeNullOrEmpty # spaces gone on blank line
+			for ($i = 1; $i -lt $stdProperties.Length; $i++) {
+				$result[$i+$startingIndex] |
+					Should Be $stdProperties[$i] # i.e. spaces still present on non-empties
+			}
+		}
 	}
 }
 }
