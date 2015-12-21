@@ -342,7 +342,7 @@ function Init-Variables()
 
 	$script:msdnIndex = Get-CmdletDocLinks
 	
-	if (! ($script:template = Get-Template $default_template)) { exit }
+	$script:template = Get-Template $default_template
 	Init-ModuleProperties
 }
 
@@ -662,7 +662,7 @@ function Get-Template([string]$defaultTemplate)
 	if (!$templateName) {
 		$templateName = $defaultTemplate
 	}
-	Get-Content $templateName
+	Get-Content $templateName -ErrorAction Stop
 }
 
 # Convert Import-Module into a functional object

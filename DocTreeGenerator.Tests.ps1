@@ -4,8 +4,6 @@ InModuleScope DocTreeGenerator {
 
 $eightSpaces = ' ' * 8
 
-$ErrorActionPreference = 'stop'
-
 Describe 'Convert-HelpToHtmlTree' {
 
 	Context 'Indenting and line breaks' {
