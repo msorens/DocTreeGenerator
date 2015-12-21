@@ -1,11 +1,13 @@
 ## Next Release
 
 FEATURES:
+
 IMPROVEMENTS:
+
 BUG FIXES:
 
 
-## 2.0.01 (December 16, 2015)
+## 2.0.01 (December 21, 2015)
 
 Migrated from http://cleancode.sourceforge.net/
 
@@ -18,5 +20,5 @@ IMPROVEMENTS TO Convert-HelpToHtmlTree
 	> recognize code segments and apply style tag.
 	> flow and wrap body text for description and for parameters.
   - Add unit tests.
-  - Updated license.
+  - Update license.
 
