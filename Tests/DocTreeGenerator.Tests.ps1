@@ -1,4 +1,4 @@
-Import-Module .\DocTreeGenerator.psd1 -force
+Import-Module "$PSScriptRoot\..\DocTreeGenerator.psd1" -force
 
 InModuleScope DocTreeGenerator {
 
