@@ -1,0 +1,44 @@
+
+Convert-HelpToHtmlTree
+	Handle-MissingValue
+
+	Add-ItemToContentsList
+
+	Init-Variables
+		Get-UserPsModulePath
+		Get-CmdletDocLinks
+		Get-Template
+		Init-ModuleProperties
+
+	Process-Module
+		Handle-MissingValue
+		Import-MostModules
+		Generate-FunctionPages
+			Filter-ThisModule
+			Handle-MissingValue
+			Get-Sections
+				Add-HelpSection
+			ConvertTo-Body
+				Add-Links
+			Fill-Template
+			Add-ItemToContentsList
+		Generate-ModulePage
+			Filter-ThisModule
+			Fill-Template
+			Get-ModulePreamble
+				Get-RelevantPath
+				Handle-MissingValue
+			Add-ItemToContentsList
+		Remove-MostModules
+
+	Generate-HomePage
+		Get-NamespacePreamble
+			Get-Overview
+				Get-RelevantPath
+				Handle-MissingValue
+		Fill-Template
+
+	Generate-ContentsPage
+		Fill-Template
+
+<html support functions omitted>
