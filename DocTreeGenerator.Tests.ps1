@@ -286,24 +286,24 @@ Describe 'Convert-HelpToHtmlTree' {
 		It 'Emboldens parameter name by itself' {
 			$paramName = 'SomeParam'
 			$text = "  -$paramName"
-			StylizeParameters $text | Should Be "  -<strong>$paramName</strong>"
+			CorrectIndents $text | Should Be "  -<strong>$paramName</strong>"
 		}
 
 		It 'Emboldens parameter name with properties' {
 			$paramName = 'SomeParam'
-			(StylizeParameters (GenerateText $paramName)) -join '' |
+			(CorrectIndents (GenerateText $paramName)) -join '' |
 				Should Match "^  -<strong>$paramName</strong>"
 		}
 
 		It 'Emboldens parameter name with description and properties' {
 			$paramName = 'SomeParam'
-			(StylizeParameters (GenerateText $paramName $stdDescription)) -join '' |
+			(CorrectIndents (GenerateText $paramName $stdDescription)) -join '' |
 				Should Match "^  -<strong>$paramName</strong>"
 		}
 
 		It 'Separates parameter name from properties with blank line' {
 			$paramName = 'SomeParam'
-			$result = StylizeParameters (GenerateText $paramName)
+			$result = CorrectIndents (GenerateText $paramName)
 			$result.Count | Should Be ($stdProperties.Count + 1)
 			$result[0] | Should Match $paramName
 			$result[1] | Should BeNullOrEmpty
@@ -312,13 +312,13 @@ Describe 'Convert-HelpToHtmlTree' {
 
 		It 'Retains leading spaces on properties' {
 			$paramName = 'SomeParam'
-			(StylizeParameters (GenerateText $paramName)) -join '' |
+			(CorrectIndents (GenerateText $paramName)) -join '' |
 				Should Match "$($8space)Required.*$($8space)Position.*$($8space)Default.*($8space)Accept pipeline.*($8space)Accept wildcard"
 		}
 
 		It 'Strips leading spaces from description but retains spaces on properties' {
 			$paramName = 'SomeParam'
-			$result = (StylizeParameters (GenerateText $paramName $stdDescription))
+			$result = (CorrectIndents (GenerateText $paramName $stdDescription))
 			$result.Count | Should Be ($stdProperties.Count + $stdDescription.Count +  1)
 
 			$result[0] | Should Match $paramName
