@@ -771,6 +771,10 @@ function ConvertTo-Body($sectionHash, $sectionOrder, $helpItem, $moduleName)
 		{
 			$section += Get-HtmlDiv (ApplyIndents (HtmlEncodeAndStylizeSyntax $sectionHash[$sectionName]))
 		}
+		elseif ($sectionName -eq "PARAMETERS")
+		{
+			$section += Get-HtmlDiv (ApplyIndents (StylizeParameters (HtmlEncode $sectionHash[$sectionName])))
+		}
 		else { $section += Get-HtmlDiv (ApplyIndents (HtmlEncode $sectionHash[$sectionName])) }
 		Get-HtmlDiv $section -Class $CSS_PS_DOC_SECTION
 	}
@@ -897,9 +901,15 @@ function ApplyIndents ([string[]]$text)
 				Get-HtmlPre $_
 				$breaks = 1
 			}
-			elseif ($_ -match "^\s*[$headerMarks]{4}|[$headerMarks]{4}\s*$|^\s*[$listMarks]\s") {
+			elseif ($_ -match "^\s*[$headerMarks]{4}|[$headerMarks]{4}\s*$") {
 				EmitBreaksTo(1)
-				if ($_ -match "^\s*[$listMarks]\s") { $_ } else { Get-HtmlBold $_ }
+				Get-HtmlBold $_
+				"<br/>"
+				$breaks = 1
+			}
+			elseif ($_ -match "^\s*[$listMarks]") {
+				EmitBreaksTo(1)
+				$_
 				"<br/>"
 				$breaks = 1
 			}
@@ -971,5 +981,23 @@ function HtmlEncodeAndStylizeSyntax($text)
 		-replace '^\s*(\S+)','<b>$1</b>'
 }
 
+function StylizeParameters([string[]]$text)
+{
+	$inParamDescription = $false
+	$text | % {
+		if ($_ -match '^(\s*-)(.+)') {
+			$inParamDescription = $true
+			$Matches[1] + (Get-HtmlBold $Matches[2]) # add some highlight
+		}
+		elseif ($inParamDescription -and $_ -match '^\s*Required\?') { # Constant after description
+			$inParamDescription = $false
+			$_ # be sure to emit it, too!
+		}
+		elseif ($inParamDescription -and $_ -match '^\s*(.*)') {
+		   	$Matches[1] # remove the leading spaces here so it becomes regular, wrapped text
+		}
+		else { $_ }
+	}
+}
 
 Export-ModuleMember Convert-HelpToHtmlTree

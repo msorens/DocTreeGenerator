@@ -16,4 +16,7 @@ IMPROVEMENTS TO Convert-HelpToHtmlTree
     > recognize lists and add line breaks
 	> recognize headers and add line breaks and apply style tag.
 	> recognize code segments and apply style tag.
+	> flow and wrap body text for description and for parameters.
+  - Add unit tests.
+  - Updated license.
 
