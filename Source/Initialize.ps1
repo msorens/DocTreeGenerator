@@ -23,7 +23,7 @@ function Init-Variables()
 
 	$script:namespace_overview_filename = "namespace_overview.html"
 	$script:module_overview_filename    = "module_overview.html"
-	$script:default_template            = "$PSScriptRoot\Templates\psdoc_template.html"
+	$script:default_template            = "$PSScriptRoot\..\Templates\psdoc_template.html"
 
 	$script:moduleRoot = Get-UserPsModulePath
 
