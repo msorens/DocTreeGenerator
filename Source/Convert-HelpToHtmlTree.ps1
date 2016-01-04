@@ -398,7 +398,7 @@ function Generate-FunctionPages($qualifiedModName, $moduleName, $moduleDocPath, 
 			$helpHash[$function].Synopsis = ""
 		}
 		($helpSections, $helpSectionOrder) = Get-Sections($helpText)
-		$body = ConvertTo-Body $helpSections $helpSectionOrder $helpHash[$function] $moduleName
+		$body = ConvertTo-Body $helpSections $helpSectionOrder $moduleName
 		
 		$targetFile = join-path $moduleDocPath ($function+".html")
 		$breadcrumbs = Get-HtmlBreadCrumbs `
@@ -663,7 +663,7 @@ function Get-Sections($text)
 			$sectionName = $_
 			$lowBound = $rowNum + 1
 		}
-		# My deviation from "standard"--add separate section for examples
+		# Add separate section title for examples (which standard help lacks).
 		elseif ($_ -match "----\s+EXAMPLE 1\s+----") {
 			Add-HelpSection $sectionName $text ([ref]$sectionHash) ([ref]$sectionOrder)# output prior section
 			$sectionName = "EXAMPLES"
@@ -684,7 +684,7 @@ function Add-HelpSection($sectionName, $text, [ref]$hash, [ref]$order)
 	}
 }
 
-function ConvertTo-Body($sectionHash, $sectionOrder, $helpItem, $moduleName)
+function ConvertTo-Body([hashtable]$sectionHash, [string[]]$sectionOrder, [string]$moduleName)
 {
 	$sectionOrder | % {
 		$sectionName = $_
