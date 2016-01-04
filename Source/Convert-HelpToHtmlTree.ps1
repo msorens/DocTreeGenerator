@@ -428,7 +428,7 @@ function Generate-ModulePage($qualifiedModName, $moduleName, $moduleDocPath, $pa
 	sort -Property Name |
 	% {
 		if ($_.CommandType -in $CMDLET_TYPES) {
-			Get-HtmlRow (Get-HtmlLink ($_.Name+".html") $_.Name), ($helpHash[$_.Name].Synopsis)
+			Get-HtmlRow (Get-HtmlLink ($_.Name+".html") $_.Name), (HtmlEncode  $helpHash[$_.Name].Synopsis)
 		}
 		elseif ($_.CommandType -eq "Alias") {
 			Get-HtmlRow $_.Name, ("Alias to " + $_.Definition)
