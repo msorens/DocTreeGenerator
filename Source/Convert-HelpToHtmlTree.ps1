@@ -652,7 +652,7 @@ function Get-Sections($text)
 	$sectionName = ""
 	# Handle corner case of no help defined for a given function,
 	# where help returned just 1 row containing the syntax without an indent.
-	if ($helpText.Count -eq 1) { $sectionName = "SYNTAX"; $rowNum = 1 }
+	if ($helpText.Count -eq 1) { $sectionName = $SYNTAX_SECTION; $rowNum = 1 }
 	else {
 	$text | % {
 		# The normal help text has section headers (NAME, SYNOPSIS, SYNTAX, DESCRIPTION, etc.)
@@ -666,7 +666,7 @@ function Get-Sections($text)
 		# Add separate section title for examples (which standard help lacks).
 		elseif ($_ -match "----\s+EXAMPLE 1\s+----") {
 			Add-HelpSection $sectionName $text ([ref]$sectionHash) ([ref]$sectionOrder)# output prior section
-			$sectionName = "EXAMPLES"
+			$sectionName = $EXAMPLES_SECTION
 			$lowBound = $rowNum
 		}
 		$rowNum++
@@ -686,6 +686,12 @@ function Add-HelpSection($sectionName, $text, [ref]$hash, [ref]$order)
 
 function ConvertTo-Body([hashtable]$sectionHash, [string[]]$sectionOrder, [string]$moduleName)
 {
+	if (!$sectionHash.ContainsKey($DESCRIPTION_SECTION)) {
+		$funcName = ($sectionHash['Name'][0]).Trim()
+		$section = Get-HtmlHead $DESCRIPTION_SECTION 2
+		$section += Get-HtmlPara (Handle-MissingValue "Missing description (from $funcName source)")
+		Get-HtmlDiv $section -Class $CSS_PS_DOC_SECTION
+	}
 	$sectionOrder | % {
 		$sectionName = $_
 		
@@ -693,14 +699,14 @@ function ConvertTo-Body([hashtable]$sectionHash, [string[]]$sectionOrder, [strin
 		$section = Get-HtmlHead $sectionName 2
 		
 		# emit body
-		if ($sectionName -eq "RELATED LINKS")
+		if ($sectionName -eq $LINKS_SECTION)
 		{
 			if ((-join $sectionHash[$sectionName]).Length -gt 0) {
 				$section += Get-HtmlList (Add-Links $moduleName $sectionHash[$sectionName]) }
 			else {
 				$section += Get-HtmlPara "-none-" }
 		}
-		elseif ($sectionName -eq "EXAMPLES")
+		elseif ($sectionName -eq $EXAMPLES_SECTION)
 		{
 			$section += Get-HtmlDiv (ApplyIndents (HtmlEncode $sectionHash[$sectionName]))
 			$break = Get-HtmlLineBreak
@@ -708,11 +714,11 @@ function ConvertTo-Body([hashtable]$sectionHash, [string[]]$sectionOrder, [strin
 			$section = $section -replace "(EXAMPLE\s+\d+\s+------*.*(?:\s*$break)+\s*)(.*?)(\s*$break)",
 					"`$1$(Get-HtmlSpan `$2 -Class $CSS_PS_CMD)`$3"
 		}
-		elseif ($sectionName -eq "SYNTAX")
+		elseif ($sectionName -eq $SYNTAX_SECTION)
 		{
 			$section += Get-HtmlDiv (ApplyIndents (HtmlEncodeAndStylizeSyntax $sectionHash[$sectionName]))
 		}
-		elseif ($sectionName -eq "PARAMETERS")
+		elseif ($sectionName -eq $PARAMETERS_SECTION)
 		{
 			$section += Get-HtmlDiv (ApplyIndents (CorrectIndents (HtmlEncode $sectionHash[$sectionName])))
 		}

@@ -34,6 +34,12 @@ function Init-Variables()
 
 	$script:msdnIndex = Get-CmdletDocLinks
 	
+	$script:SYNTAX_SECTION = 'SYNTAX'
+	$script:DESCRIPTION_SECTION = 'DESCRIPTION'
+	$script:PARAMETERS_SECTION = 'PARAMETERS'
+	$script:EXAMPLES_SECTION = 'EXAMPLES'
+	$script:LINKS_SECTION = 'RELATED LINKS'
+
 	$script:template = Get-Template $default_template
 	Init-ModuleProperties
 }
