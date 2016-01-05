@@ -227,6 +227,20 @@ Describe 'Convert-HelpToHtmlTree' {
 		}
 
 		$testCases = @(
+			@{ inputText = 'not a cmdlet'; description = 'multiple words'}
+			@{ inputText = 'one_word'; description = 'single word'}
+			@{ inputText = '!#$@'; description = 'stray characters'}
+		)
+		It 'Generates no link for plain text with <description>' -TestCases $testCases {
+			param ($inputText, $description)
+			Mock Get-CmdletDocLinks { return @{ } }
+			Init-Variables
+
+			Add-Links 'any' $inputText | Should Be "<li>$inputText</li>"
+		}
+
+
+		$testCases = @(
 			@{ template = '[{0}]({1})'; description = 'no extra spaces'}
 			@{ template = '[ {0}  ]({1})'; description = 'extra spaces in label'}
 			@{ template = '[{0}](  {1} )'; description = 'extra spaces in url'}
@@ -339,4 +353,5 @@ Describe 'Convert-HelpToHtmlTree' {
 		}
 	}
 }
+
 }

@@ -740,7 +740,7 @@ function Add-Links($currentModuleName, $text)
 	$GRANDPARENT_INDEX = -3
 	$text -split "`n" | % {
 		$item = $_.Trim() # default to "as is" entry
-		if ($_ -match "^\s*([\w\-]+)\s*$") { # cmdlet format: "verb-noun"
+		if ($_ -match "^\s*(\w+-\w+)\s*$") { # cmdlet format: "verb-noun"
 			$thisCmdName = $Matches[1]
 			if ($msdnIndex[$thisCmdName]) {
 				$item = Get-HtmlLink $msdnIndex[$thisCmdName] $thisCmdName # generate link to MSDN
