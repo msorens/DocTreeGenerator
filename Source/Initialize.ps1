@@ -8,6 +8,7 @@ function Init-Variables()
 	$script:namespaceCount   = 0
 	$script:noModulesFlagged = $false
 	$script:itemList         = @()
+	$script:failedCount      = 0
 
 	$script:PAGE_HOME        = "home"
 	$script:PAGE_CONTENTS    = "contents"

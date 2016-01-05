@@ -213,6 +213,10 @@ Using the default template, RevisionDate appears at the bottom of each page.
 If you do not intend to supply this value edit the default template
 to remove the rest of the revision date phrase.
 
+.PARAMETER EnableExit
+Causes Convert-HelpToHtmlTree to exit with an exit code equal to the number of errors detected.
+Use this to "fail" a build when there are documentation errors.
+
 .INPUTS
 None. You cannot pipe objects to Convert-HelpToHtmlTree.
 
@@ -261,7 +265,8 @@ function Convert-HelpToHtmlTree
 		[string]$TemplateName = "",
 		[string]$DocTitle     = "",
 		[string]$Copyright    = "",
-		[string]$RevisionDate = ""
+		[string]$RevisionDate = "",
+		[switch]$EnableExit
 	)
 
 	Init-Variables
@@ -304,6 +309,8 @@ function Convert-HelpToHtmlTree
 		write-warning "module directories are not within a namespace directory." }
 	"Done: {0} namespace(s), {1} module(s), {2} function(s), {3} file(s) processed." `
 		-f $namespaceCount,$moduleCount, $functionCount, $fileCount
+
+	if ($EnableExit) { Exit-WithCode -FailedCount $failedCount }
 }
 
 ########################### Support #############################
@@ -604,6 +611,7 @@ function Handle-MissingValue($message)
 {
 	Write-Host -ForegroundColor Red ("** " + $message)
 	Get-HtmlSpan $message -Class $CSS_ERR_MSG
+	$script:failedCount++
 }
 
 # Convert Import-Module into a functional object
@@ -764,6 +772,11 @@ function Add-Links($currentModuleName, $text)
 		}
 		if ($item) { Get-HtmlListItem $item } # emit only if non-empty
 	}
+}
+
+# Borrowed from Pester
+function Exit-WithCode ($FailedCount) {
+	$host.SetShouldExit($FailedCount)
 }
 
 
