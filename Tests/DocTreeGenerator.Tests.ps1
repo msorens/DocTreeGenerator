@@ -4,7 +4,72 @@ InModuleScope DocTreeGenerator {
 
 $eightSpaces = ' ' * 8
 
+function Stringify([string[]]$text, [switch]$stripHtml)
+{
+	 $result = $text -join '' -replace "`r" -replace "`n"
+	 if ($stripHtml) { $result -replace '<.*?>' }
+	 else { $result }
+}
+
 Describe 'Convert-HelpToHtmlTree' {
+
+	Context 'Body' {
+
+		BeforeEach {
+			Mock Write-Host
+			Mock Get-CmdletDocLinks
+			Mock Get-Template { "any" }
+			Init-Variables
+			$stdSections  = @{
+				NAME = @('any')
+				DESCRIPTION = 'any'
+				'RELATED LINKS' = ''
+			}
+			$stdSectionOrder = @(
+				'NAME'
+				'SYNOPSIS'
+				'SYNTAX'
+				'DESCRIPTION'
+				'PARAMETERS'
+				'INPUTS'
+				'OUTPUTS'
+				'EXAMPLES'
+				'RELATED LINKS'
+			)
+		}
+
+		It 'Reports no links if no links present' {
+			$result = Stringify (ConvertTo-Body $stdSections $stdSectionOrder 'any') -stripHtml
+			$result | Should Match 'RELATED LINKS-none-'
+		}
+
+		It 'Reports one link if link present' {
+			$stdSections['RELATED LINKS'] = 'foo'
+			$result = Stringify (ConvertTo-Body $stdSections $stdSectionOrder 'any')
+			$result | Should Match ('RELATED LINKS.*' + (Get-HtmlListItem 'foo'))
+		}
+
+		It 'Reports multiple links if links present' {
+			$stdSections['RELATED LINKS'] = 'foo','bar'
+			$result = Stringify (ConvertTo-Body $stdSections $stdSectionOrder 'any') 
+			$result | Should Match ('RELATED LINKS.*' + (Get-HtmlListItem 'foo') + (Get-HtmlListItem 'bar'))
+		}
+
+		It 'Reports description present when present' {
+			$stdSections.DESCRIPTION = 'my description here'
+			$result = Stringify (ConvertTo-Body $stdSections $stdSectionOrder 'any') 
+			$result | Should Match ("DESCRIPTION.*" + (Stringify (Get-HtmlDiv $stdSections.DESCRIPTION)))
+		}
+
+		It 'Reports description missing when missing' {
+			$source = 'mySource'
+			$stdSections.Remove('DESCRIPTION')
+			$stdSections.NAME[0] = $source
+			$stdSectionOrder = $stdSectionOrder | ? { $_ -ne 'DESCRIPTION' }
+			$result = Stringify (ConvertTo-Body $stdSections $stdSectionOrder 'any') 
+			$result | Should Match "DESCRIPTION.*missing description.*$source"
+		}
+	}
 
 	Context 'Indenting and line breaks' {
 
