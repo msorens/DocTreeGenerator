@@ -216,6 +216,8 @@ to remove the rest of the revision date phrase.
 .PARAMETER EnableExit
 Causes Convert-HelpToHtmlTree to exit with an exit code equal to the number of errors detected.
 Use this to "fail" a build when there are documentation errors.
+Note that this switch causes the invoking shell to exit upon completion of the cmdlet as well!
+Thus, typically you do *not* want to use this switch interactively.
 
 .INPUTS
 None. You cannot pipe objects to Convert-HelpToHtmlTree.

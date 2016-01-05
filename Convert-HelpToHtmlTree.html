@@ -35,7 +35,7 @@
  <div class='PowerShellDoc'>
 <h2>SYNTAX</h2>
 <div>
-<b>Convert-HelpToHtmlTree</b> [-Namespaces] <i>&lt;String[]&gt;</i> [[-TargetDir] <i>&lt;String&gt;</i>] [[-TemplateName] <i>&lt;String&gt;</i>] [[-DocTitle] <i>&lt;String&gt;</i>] [[-Copyright] <i>&lt;String&gt;</i>] [[-RevisionDate] <i>&lt;String&gt;</i>] [-WhatIf] [-Confirm] [<i>&lt;CommonParameters&gt;</i>]
+<b>Convert-HelpToHtmlTree</b> [-Namespaces] <i>&lt;String[]&gt;</i> [[-TargetDir] <i>&lt;String&gt;</i>] [[-TemplateName] <i>&lt;String&gt;</i>] [[-DocTitle] <i>&lt;String&gt;</i>] [[-Copyright] <i>&lt;String&gt;</i>] [[-RevisionDate] <i>&lt;String&gt;</i>] [-EnableExit] [-WhatIf] [-Confirm] [<i>&lt;CommonParameters&gt;</i>]
 <br/>
 <br/></div>
 </div>
@@ -331,6 +331,20 @@ to remove the rest of the revision date phrase.
 <pre>        Accept pipeline input?       false</pre>
 <pre>        Accept wildcard characters?  false</pre>
 <br/>
+    -<strong>EnableExit [&lt;SwitchParameter&gt;]</strong>
+<br/>
+Causes Convert-HelpToHtmlTree to exit with an exit code equal to the number of errors detected.
+Use this to "fail" a build when there are documentation errors.
+Note that this switch causes the invoking shell to exit upon completion of the cmdlet as well!
+Thus, typically you do *not* want to use this switch interactively.
+<br/>
+<br/>
+<pre>        Required?                    false</pre>
+<pre>        Position?                    named</pre>
+<pre>        Default value                False</pre>
+<pre>        Accept pipeline input?       false</pre>
+<pre>        Accept wildcard characters?  false</pre>
+<br/>
     -<strong>WhatIf [&lt;SwitchParameter&gt;]</strong>
 <br/>
 <br/>
@@ -424,7 +438,7 @@ to remove the rest of the revision date phrase.
 
 
 <p><i>
-This documentation set was created with CleanCode's
+This documentation set was created with 
 <a target="_blank" href="https://github.com/msorens/DocTreeGenerator">DocTreeGenerator</a>.
 </i></p>
 
