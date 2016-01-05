@@ -573,7 +573,9 @@ function Get-ModulePreamble($path, $moduleName)
 {
 	$details = Get-Overview (Join-Path $path $moduleName) $module_overview_filename
 
-	$summary = (Get-Module $moduleName).description
+	# Could return one or more strings
+	# (In practice, have only seen a single non-empty string, or an array of 2 empty strings.)
+	$summary = ((Get-Module $moduleName).description -join ' ').Trim()
 	if (!$summary) {
 		$displayName = Get-RelevantPath `
 			(Join-Path (Join-Path $path $moduleName) "$moduleName.psd1")
