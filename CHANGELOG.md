@@ -7,12 +7,22 @@ IMPROVEMENTS:
 BUG FIXES:
 
 
+## 2.0.03 (January 31, 2016)
+
+ADMINISTRATIVE:
+  - Corrected encoding for manifest (changed from Unicode to ASCII).
+  - Removed stray formatting character from read me interfering with a URL.
+  - Updated version in the manifest to reflect the release number.
+
+BUG FIXES:
+  - Check for missing module description was failing intermittently.
+
+
 ## 2.0.02 (January 5, 2016)
 
 IMPROVEMENTS:
   - Report missing cmdlet documentation (proxied by missing Description section).
   - Add support for build systems/continuous integration with -EnableExit.
-
 
 BUG FIXES:
   - Corrected link resolver to treat single words as plain text rather than a cmdlet name.
