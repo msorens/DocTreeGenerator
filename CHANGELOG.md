@@ -7,6 +7,22 @@ IMPROVEMENTS:
 BUG FIXES:
 
 
+## 2.0.04 (March 1, 2016)
+
+IMPROVEMENTS:
+  - In conjunction with fixing multi-line code examples (below),
+    changed list items (beginning with plus, minus, asterisk) to still
+	emit a <br> before the line but removed emitting one after the line.
+  - Also for code examples, added emitting a <br> before a canonical
+    PowerShell prompt (PS>).
+
+BUG FIXES:
+  - Module properties used in template might appear with multiple values
+    if module being documented was already loaded in the PowerShell host.
+  - Code examples with more than one line of code had several HTML generation
+    issues. 
+
+
 ## 2.0.03 (January 31, 2016)
 
 ADMINISTRATIVE:
