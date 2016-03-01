@@ -75,106 +75,107 @@ Describe 'Convert-HelpToHtmlTree' {
 
 		It 'omits break for single words' {
 			$text = 'one', 'two', 'three'
-			(ApplyIndents $text) -join ' ' |
+			(ApplyLineBreaks $text) -join ' ' |
 			Should Be 'one two three'
 		}
 
 		It 'omits break for multiple words' {
 			$text = 'one word', 'two words', 'three words'
-			(ApplyIndents $text) -join ' ' |
+			(ApplyLineBreaks $text) -join ' ' |
 			Should Be 'one word two words three words'
 		}
 
 		It 'omits break for normal text' {
 			$text = 'one word.', 'two words?', 'three words,', 'done'
-			(ApplyIndents $text) -join ' ' |
+			(ApplyLineBreaks $text) -join ' ' |
 			Should Be 'one word. two words? three words, done'
 		}
 
 		It 'omits break for text with less than 4 header characters' {
 			$text = 'one word.', 'it -- the green one --', 'is true'
-			(ApplyIndents $text) -join ' ' |
+			(ApplyLineBreaks $text) -join ' ' |
 			Should Be 'one word. it -- the green one -- is true'
 		}
 
 		It 'includes auto-break after header-like text' {
 			$text = 'title1 ----', 'title2 ====', 'title3 ####'
-			(ApplyIndents $text) -join '' |
+			(ApplyLineBreaks $text) -join '' |
 			Should Be '<br/><strong>title1 ----</strong><br/><strong>title2 ====</strong><br/><strong>title3 ####</strong><br/>'
 		}
 
 		It 'includes auto-break after header-like text plus extra whitespace at the end' {
 			$text = 'title1---- ', "title2 ====`t", 'plain text'
-			(ApplyIndents $text) -join '' |
+			(ApplyLineBreaks $text) -join '' |
 			Should Be "<br/><strong>title1---- </strong><br/><strong>title2 ====`t</strong><br/>plain text"
 		}
 
 		It 'includes auto-break before and after header-like text' {
 			$text = '---- title1 ----', '====title2===='
-			(ApplyIndents $text) -join '' |
+			(ApplyLineBreaks $text) -join '' |
 			Should Be '<br/><strong>---- title1 ----</strong><br/><strong>====title2====</strong><br/>'
 		}
 
 		It 'includes auto-break before header-like text' {
 			$text = '---- title1', '==== title2'
-			(ApplyIndents $text) -join '' |
+			(ApplyLineBreaks $text) -join '' |
 			Should Be '<br/><strong>---- title1</strong><br/><strong>==== title2</strong><br/>'
 		}
 
 		It 'includes auto-break before header-like text plus extra whitespace at the start' {
 			$text = ' ---- title1', '  ====== title2', 'plain text'
-			(ApplyIndents $text) -join '' |
+			(ApplyLineBreaks $text) -join '' |
 			Should Be '<br/><strong> ---- title1</strong><br/><strong>  ====== title2</strong><br/>plain text'
 		}
 
 		It 'uses preformat block for indented lines' {
 			$text = ($eightSpaces + 'one'), ($eightSpaces + 'two')
-			(ApplyIndents $text) -join '' |
+			(ApplyLineBreaks $text) -join '' |
+
 			Should Be '<pre>        one</pre><pre>        two</pre>'
 		}
 
 		It 'includes auto-break for list-like text with no preamble' {
 			$text = '* item1', '- item2', '+ item3'
-			(ApplyIndents $text) -join '' |
 			Should Be '<br/>* item1<br/>- item2<br/>+ item3<br/>'
+			(ApplyLineBreaks $text) -join '' |
 		}
 
 		It 'includes auto-break for list-like text with immediate preamble' {
 			$text = 'my list:','* item1', '- item2', '+ item3'
-			(ApplyIndents $text) -join '' |
 			Should Be 'my list:<br/>* item1<br/>- item2<br/>+ item3<br/>'
+			(ApplyLineBreaks $text) -join '' |
 		}
 
 		It 'includes auto-break for list-like text with whitespace after preamble' {
 			$text = 'my list:','','','* item1', '- item2', '+ item3'
-			(ApplyIndents $text) -join '' |
 			Should Be 'my list:<br/><br/>* item1<br/>- item2<br/>+ item3<br/>'
+			(ApplyLineBreaks $text) -join '' |
 		}
 
 		It 'includes auto-break for list-like text plus extra whitespace at start' {
 			$text = '    * item1', '      - item2', '      + item3'
-			(ApplyIndents $text) -join '' |
 			Should Be '<br/>    * item1<br/>      - item2<br/>      + item3<br/>'
+			(ApplyLineBreaks $text) -join '' |
 		}
 
 		It 'applies double-space for a blank line' {
 			$text = 'one','','two'
-			(ApplyIndents $text) -join '' |
+			(ApplyLineBreaks $text) -join '' |
 			Should Be 'one<br/><br/>two'
 		}
 		It 'applies just one double-space for multiple blank lines' {
 			$text = 'one','','','','two'
-			(ApplyIndents $text) -join '' |
+			(ApplyLineBreaks $text) -join '' |
 			Should Be 'one<br/><br/>two'
 		}
 		It 'applies just one double-space for list item followed by blank line' {
 			$text = '* item1', '* item2', '','next para...'
-			(ApplyIndents $text) -join '' |
+			(ApplyLineBreaks $text) -join '' |
 			Should Be '<br/>* item1<br/>* item2<br/><br/>next para...'
 		}
 		It 'omits break following a pre-formatted item' {
 			$text = ($eightSpaces + 'one'), '------ header ----'
-			(ApplyIndents $text) -join '' |
+			(ApplyLineBreaks $text) -join '' |
 			Should Be '<pre>        one</pre><strong>------ header ----</strong><br/>'
 		}
 
@@ -365,24 +366,24 @@ Describe 'Convert-HelpToHtmlTree' {
 		It 'Emboldens parameter name by itself' {
 			$paramName = 'SomeParam'
 			$text = "  -$paramName"
-			CorrectIndents $text | Should Be "  -<strong>$paramName</strong>"
+			CorrectParamIndents $text | Should Be "  -<strong>$paramName</strong>"
 		}
 
 		It 'Emboldens parameter name with properties' {
 			$paramName = 'SomeParam'
-			(CorrectIndents (GenerateText $paramName)) -join '' |
+			(CorrectParamIndents (GenerateText $paramName)) -join '' |
 				Should Match "^  -<strong>$paramName</strong>"
 		}
 
 		It 'Emboldens parameter name with description and properties' {
 			$paramName = 'SomeParam'
-			(CorrectIndents (GenerateText $paramName $stdDescription)) -join '' |
+			(CorrectParamIndents (GenerateText $paramName $stdDescription)) -join '' |
 				Should Match "^  -<strong>$paramName</strong>"
 		}
 
 		It 'Separates parameter name from properties with blank line' {
 			$paramName = 'SomeParam'
-			$result = CorrectIndents (GenerateText $paramName)
+			$result = CorrectParamIndents (GenerateText $paramName)
 			$result.Count | Should Be ($stdProperties.Count + 1)
 			$result[0] | Should Match $paramName
 			$result[1] | Should BeNullOrEmpty
@@ -397,10 +398,10 @@ Describe 'Convert-HelpToHtmlTree' {
 
 		It 'Strips leading spaces from description but retains spaces on properties' {
 			$paramName = 'SomeParam'
-			$result = (CorrectIndents (GenerateText $paramName $stdDescription))
 			$result.Count | Should Be ($stdProperties.Count + $stdDescription.Count +  1)
 
 			$result[0] | Should Match $paramName
+			$result = CorrectParamIndents (GenerateText $paramName $stdDescription)
 
 			$startingIndex = 1 # i.e. skip param name
 			for ($i = 0; $i -lt $stdDescription.Length; $i++) {

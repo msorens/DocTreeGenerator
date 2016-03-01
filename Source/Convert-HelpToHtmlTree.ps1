@@ -720,7 +720,7 @@ function ConvertTo-Body([hashtable]$sectionHash, [string[]]$sectionOrder, [strin
 		}
 		elseif ($sectionName -eq $EXAMPLES_SECTION)
 		{
-			$section += Get-HtmlDiv (ApplyIndents (HtmlEncode $sectionHash[$sectionName]))
+			$section += Get-HtmlDiv (ApplyLineBreaks (HtmlEncode $sectionHash[$sectionName]))
 			$break = Get-HtmlLineBreak
 			# add CSS class name
 			$section = $section -replace "(EXAMPLE\s+\d+\s+------*.*(?:\s*$break)+\s*)(.*?)(\s*$break)",
@@ -728,13 +728,13 @@ function ConvertTo-Body([hashtable]$sectionHash, [string[]]$sectionOrder, [strin
 		}
 		elseif ($sectionName -eq $SYNTAX_SECTION)
 		{
-			$section += Get-HtmlDiv (ApplyIndents (HtmlEncodeAndStylizeSyntax $sectionHash[$sectionName]))
+			$section += Get-HtmlDiv (ApplyLineBreaks (HtmlEncodeAndStylizeSyntax $sectionHash[$sectionName]))
 		}
 		elseif ($sectionName -eq $PARAMETERS_SECTION)
 		{
-			$section += Get-HtmlDiv (ApplyIndents (CorrectIndents (HtmlEncode $sectionHash[$sectionName])))
+			$section += Get-HtmlDiv (ApplyLineBreaks (CorrectParamIndents (HtmlEncode $sectionHash[$sectionName])))
 		}
-		else { $section += Get-HtmlDiv (ApplyIndents (HtmlEncode $sectionHash[$sectionName])) }
+		else { $section += Get-HtmlDiv (ApplyLineBreaks (HtmlEncode $sectionHash[$sectionName])) }
 		Get-HtmlDiv $section -Class $CSS_PS_DOC_SECTION
 	}
 }

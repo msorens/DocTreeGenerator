@@ -1,6 +1,6 @@
 Set-StrictMode -Version Latest
 
-function ApplyIndents ([string[]]$text)
+function ApplyLineBreaks ([string[]]$text)
 {
 	$listMarks = '*+-'
 	$headerMarks = '=_+*#~-'
@@ -9,7 +9,7 @@ function ApplyIndents ([string[]]$text)
 	$lineBreak = Get-HtmlLineBreak
 	$text | % {
 		if ($_ -match '^\s*$') {
-			if ($blanks++ -eq 0) { EmitBreaksTo(2); $breaks = 2 } # add just one in HTML
+			if ($blanks++ -eq 0) { EmitBreaksTo 2; $breaks = 2 } # add just one in HTML
 		}
 		else {
 			$blanks = 0
@@ -19,13 +19,13 @@ function ApplyIndents ([string[]]$text)
 				$breaks = 1
 			}
 			elseif ($_ -match "^\s*[$headerMarks]{4}|[$headerMarks]{4}\s*$") {
-				EmitBreaksTo(1)
+				EmitBreaksTo 1
 				Get-HtmlBold $_
 				$lineBreak
 				$breaks = 1
 			}
 			elseif ($_ -match "^\s*[$listMarks]") {
-				EmitBreaksTo(1)
+				EmitBreaksTo 1
 				$_
 				$lineBreak
 				$breaks = 1
@@ -38,7 +38,7 @@ function ApplyIndents ([string[]]$text)
 	}
 }
 
-function CorrectIndents([string[]]$text)
+function CorrectParamIndents([string[]]$text)
 {
 	$inParamDescription = $false
 	$text | % {
@@ -57,7 +57,8 @@ function CorrectIndents([string[]]$text)
 	}
 }
 
-function EmitBreaksTo($count) {
+function EmitBreaksTo([int]$count)
+{
 	$lineBreak = Get-HtmlLineBreak
 	while ($breaks++ -lt $count) { $lineBreak }
 }
