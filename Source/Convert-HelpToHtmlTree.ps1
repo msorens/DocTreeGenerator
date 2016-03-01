@@ -644,6 +644,9 @@ function Import-MostModules($qModuleName)
 	# Skip reloading this module--causes all functions to be lost!
 	if ($qModuleName -eq $thisModule) { return $true }
 
+	# Need to remove it first in case already loaded in the current shell.
+	# Otherwise, module properties in template could show two values!
+	Remove-Module $qModuleName -ErrorAction SilentlyContinue
 	Import-Module $qModuleName -force
 	return ! (!$?)
 }
