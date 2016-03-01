@@ -2,7 +2,9 @@ Import-Module "$PSScriptRoot\..\DocTreeGenerator.psd1" -force
 
 InModuleScope DocTreeGenerator {
 
-$eightSpaces = ' ' * 8
+$2space = ' ' * 2
+$4space = ' ' * 4
+$8space = ' ' * 8
 
 function Stringify([string[]]$text, [switch]$stripHtml)
 {
@@ -11,15 +13,26 @@ function Stringify([string[]]$text, [switch]$stripHtml)
 	 else { $result }
 }
 
+function StripLineBreaks([string]$text)
+{
+	$text -replace "`r`n"
+}
+
+function SplitToArray([string]$text)
+{
+	$text -split "`r`n"
+}
+
 Describe 'Convert-HelpToHtmlTree' {
 
-	Context 'Body' {
+	Context 'Body/links' {
+
+		Mock Write-Host
+		Mock Get-CmdletDocLinks
+		Mock Get-Template { "any" }
+		Init-Variables
 
 		BeforeEach {
-			Mock Write-Host
-			Mock Get-CmdletDocLinks
-			Mock Get-Template { "any" }
-			Init-Variables
 			$stdSections  = @{
 				NAME = @('any')
 				DESCRIPTION = 'any'
@@ -68,6 +81,277 @@ Describe 'Convert-HelpToHtmlTree' {
 			$stdSectionOrder = $stdSectionOrder | ? { $_ -ne 'DESCRIPTION' }
 			$result = Stringify (ConvertTo-Body $stdSections $stdSectionOrder 'any') 
 			$result | Should Match "DESCRIPTION.*missing description.*$source"
+		}
+	}
+
+	Context 'Body/examples' {
+
+		Mock Write-Host
+		Mock Get-CmdletDocLinks
+		Mock Get-Template { "any" }
+		Init-Variables
+
+		$cmd = 'Get-Foobar'
+		$cmdStyle = $CSS_PS_CMD
+		$docStyle = $CSS_PS_DOC_SECTION 
+		$exampleHeader = '<h2>EXAMPLES</h2>'
+
+		$stdExample1 = '    -------------------------- EXAMPLE 1 --------------------------',
+   			'',
+		    "    $cmd",
+			'',
+			'',
+		    '    This gets the foobar for the current shebang.'
+
+		$stdExample2 = '    -------------------------- EXAMPLE 2 --------------------------',
+			'',
+		    '    Get-SomethingElse',
+			'',
+			'',
+		    '    This gets the foobar for the current shebang.'
+
+		$multiLineToSingleLine = '    -------------------------- EXAMPLE 1 --------------------------',
+			'',
+		    '    Get-Something1 |',
+		    '    Get-Something2',
+			'',
+			'',
+		    '    This gets the foobar for the current shebang.'
+
+		# Add a crucial leading space (at least one, less than four, in front of second line)
+		$multilineToMultiLine = '    -------------------------- EXAMPLE 1 --------------------------',
+			'',
+		    '    Get-Something1 |',
+		    '     Get-Something2',
+			'',
+			'',
+		    '    This gets the foobar for the current shebang.'
+
+		$multilineWithPrompts = '    -------------------------- EXAMPLE 1 --------------------------',
+			'',
+		    '    Get-Something1 | Got-Something',
+		    '    PS> Get-Something2',
+			'',
+			'',
+		    '    This gets the foobar for the current shebang.'
+
+		It 'Adds example header in front of first example when just one example' {
+			$examples  = @{
+				NAME = @('any')
+				DESCRIPTION = 'any'
+				EXAMPLES = $stdExample1
+			}
+			$expected = @"
+<div class=['"]$docStyle['"]>
+\s*$exampleHeader
+\s*<div>
+\s*<br/>
+\s*\S+\s*----+ EXAMPLE 1 ----+
+"@
+			$result = Stringify (ConvertTo-Body $examples EXAMPLES 'any')
+
+			$result | Should Match (StripLineBreaks $expected)
+		}
+
+		It 'Adds example header in front of first example with multiple examples' {
+			$examples  = @{
+				NAME = @('any')
+				DESCRIPTION = 'any'
+				EXAMPLES = $stdExample1,'','',$stdExample2
+			}
+			$expected = @"
+<div class=['"]$docStyle['"]>
+\s*$exampleHeader
+\s*<div>
+\s*<br/>
+\s*\S+\s*----+ EXAMPLE 1 ----+
+"@
+			$result = Stringify (ConvertTo-Body $examples EXAMPLES 'any')
+
+			$result | Should Match (StripLineBreaks $expected)
+		}
+
+		It 'Wraps command in span element' {
+			$examples  = @{
+				NAME = @('any')
+				DESCRIPTION = 'any'
+				EXAMPLES = $stdExample1
+			}
+			$expected = @"
+<span class=['"]$cmdStyle['"]>$cmd</span>
+"@
+			$result = Stringify (ConvertTo-Body $examples EXAMPLES 'any')
+
+			$result | Should Match (StripLineBreaks $expected)
+		}
+
+		It 'Adds 2 breaks after the example header before the command' {
+			$examples  = @{
+				NAME = @('any')
+				DESCRIPTION = 'any'
+				EXAMPLES = $stdExample1
+			}
+			$expected = @"
+----+ EXAMPLE 1 ----+\S+
+\s*<br/>
+\s*<br/>
+\s*.*$cmd
+"@
+			$result = Stringify (ConvertTo-Body $examples EXAMPLES 'any')
+
+			$result | Should Match (StripLineBreaks $expected)
+		}
+
+		It 'Adds 2 breaks after the command before the description' {
+			$examples  = @{
+				NAME = @('any')
+				DESCRIPTION = 'any'
+				EXAMPLES = $stdExample1
+			}
+			$expected = @"
+$cmd\S+
+\s*<br/>
+\s*<br/>
+\s*This gets the foobar for the current shebang.
+"@
+			$result = Stringify (ConvertTo-Body $examples EXAMPLES 'any')
+
+			$result | Should Match (StripLineBreaks $expected)
+		}
+
+		It 'treats multiple standard lines as a single paragraph (like a browser would)' {
+			$examples  = @{
+				NAME = @('any')
+				DESCRIPTION = 'any'
+				EXAMPLES = $multiLineToSingleLine
+			}
+			$expected = @"
+<span class=['"]$cmdStyle['"]>\s*Get-Something1 \|\s*Get-Something2\s*</span>
+"@
+			$result = Stringify (ConvertTo-Body $examples EXAMPLES 'any')
+
+			$result | Should Match (StripLineBreaks $expected)
+		}
+
+		It 'Wraps multi-line command in span element' {
+			$examples  = @{
+				NAME = @('any')
+				DESCRIPTION = 'any'
+				EXAMPLES = $multiLineToMultiLine
+			}
+			$expected = @"
+<span class=['"]$cmdStyle['"]>\s*Get-Something1 \|\s*<br/>\s*Get-Something2\s*</span>
+"@
+			$result = Stringify (ConvertTo-Body $examples EXAMPLES 'any')
+
+			$result | Should Match (StripLineBreaks $expected)
+		}
+
+		It 'treats multiple lines with ps prompt as multiple paragraphs' {
+			$examples  = @{
+				NAME = @('any')
+				DESCRIPTION = 'any'
+				EXAMPLES = $multilineWithPrompts
+			}
+			$expected = @"
+<span class=['"]$cmdStyle['"]>\s*Get-Something1 \| Got-Something<br/>\s*PS&gt; Get-Something2\s*</span>
+"@
+			$result = Stringify (ConvertTo-Body $examples EXAMPLES 'any')
+
+			$result | Should Match (StripLineBreaks $expected)
+		}
+
+	}
+
+	Context 'Body/parameters' {
+
+		Mock Write-Host
+		Mock Get-CmdletDocLinks
+		Mock Get-Template { "any" }
+		Init-Variables
+
+		BeforeEach {
+			$stdSections  = @{
+				NAME = @('any')
+				DESCRIPTION = 'any'
+				PARAMETERS = '    -Param1 <PSObject[]>',
+					'        List of project items ',
+					'        used by the project`',
+					'        in the course of its work.',
+					'        ',
+					'        Required?                    false',
+					'        Position?                    1',
+					'        Default value                $auditItems',
+					'        Accept pipeline input?       false',
+					'        Accept wildcard characters?  false',
+					'        ',
+					'    -TestFilter <String>',
+					'        This parameter is not used here.',
+					'        ',
+					'        Required?                    false',
+					'        Position?                    2',
+					'        Default value                ',
+					'        Accept pipeline input?       false',
+					'        Accept wildcard characters?  false',
+					'        ',
+					'    <CommonParameters>',
+					'        This cmdlet supports the common parameters: Verbose, Debug,',
+					'        ErrorAction, ErrorVariable, WarningAction, WarningVariable,',
+					'        OutBuffer, PipelineVariable, and OutVariable. For more information, see ',
+					'        about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).',
+					'        '
+			}
+			$stdSectionOrder = @(
+				'NAME'
+				'SYNOPSIS'
+				'SYNTAX'
+				'DESCRIPTION'
+				'PARAMETERS'
+				'INPUTS'
+				'OUTPUTS'
+				'EXAMPLES'
+				'RELATED LINKS'
+			)
+		}
+		$expected = (@('<h2>PARAMETERS</h2>',
+			'<div>',
+			'<br/>',
+			'    -<strong>Param1 &lt;PSObject[]&gt;</strong>',
+			'<br/>',
+			'      List of project items ',
+			'used by the project`',
+			'in the course of its work.',
+			'<br/>',
+			'<br/>',
+			'<pre>        Required?                    false</pre>',
+			'<pre>        Position?                    1</pre>',
+			'<pre>        Default value                $auditItems</pre>',
+			'<pre>        Accept pipeline input?       false</pre>',
+			'<pre>        Accept wildcard characters?  false</pre>',
+			'<br/>',
+			'    -<strong>TestFilter &lt;String&gt;</strong>',
+			'<br/>',
+			'      This parameter is not used here.',
+			'<br/>',
+			'<br/>',
+			'<pre>        Required?                    false</pre>',
+			'<pre>        Position?                    2</pre>',
+			'<pre>        Default value                </pre>',
+			'<pre>        Accept pipeline input?       false</pre>',
+			'<pre>        Accept wildcard characters?  false</pre>',
+			'<br/>',
+			'    &lt;CommonParameters&gt;',
+			'<pre>        This cmdlet supports the common parameters: Verbose, Debug,</pre>',
+			'<pre>        ErrorAction, ErrorVariable, WarningAction, WarningVariable,</pre>'
+			'<pre>        OutBuffer, PipelineVariable, and OutVariable. For more information, see </pre>',
+			'<pre>        about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).</pre>',
+			'<br/></div>'
+		) -join '') -replace '[$[+*?()\\.]','\$&'
+
+		It 'xxx' {
+			$result = Stringify (ConvertTo-Body $stdSections $stdSectionOrder 'any')
+
+			$result | Should Match $expected
 		}
 	}
 
@@ -127,35 +411,64 @@ Describe 'Convert-HelpToHtmlTree' {
 			Should Be '<br/><strong> ---- title1</strong><br/><strong>  ====== title2</strong><br/>plain text'
 		}
 
-		It 'uses preformat block for indented lines' {
-			$text = ($eightSpaces + 'one'), ($eightSpaces + 'two')
+		It 'uses preformat block for single indented line' {
+			$text = ($8space + 'one'), ($4space + 'two')
 			(ApplyLineBreaks $text) -join '' |
+			Should Be '<pre>        one</pre>    two'
+		}
 
+		It 'uses preformat block for multiple indented lines' {
+			$text = ($8space + 'one'), ($8space + 'two')
+			(ApplyLineBreaks $text) -join '' |
 			Should Be '<pre>        one</pre><pre>        two</pre>'
 		}
 
 		It 'includes auto-break for list-like text with no preamble' {
 			$text = '* item1', '- item2', '+ item3'
-			Should Be '<br/>* item1<br/>- item2<br/>+ item3<br/>'
 			(ApplyLineBreaks $text) -join '' |
+			Should Be '<br/>* item1<br/>- item2<br/>+ item3'
 		}
 
 		It 'includes auto-break for list-like text with immediate preamble' {
 			$text = 'my list:','* item1', '- item2', '+ item3'
-			Should Be 'my list:<br/>* item1<br/>- item2<br/>+ item3<br/>'
 			(ApplyLineBreaks $text) -join '' |
+			Should Be 'my list:<br/>* item1<br/>- item2<br/>+ item3'
 		}
 
 		It 'includes auto-break for list-like text with whitespace after preamble' {
 			$text = 'my list:','','','* item1', '- item2', '+ item3'
-			Should Be 'my list:<br/><br/>* item1<br/>- item2<br/>+ item3<br/>'
 			(ApplyLineBreaks $text) -join '' |
+			Should Be 'my list:<br/><br/>* item1<br/>- item2<br/>+ item3'
 		}
 
 		It 'includes auto-break for list-like text plus extra whitespace at start' {
 			$text = '    * item1', '      - item2', '      + item3'
-			Should Be '<br/>    * item1<br/>      - item2<br/>      + item3<br/>'
 			(ApplyLineBreaks $text) -join '' |
+			Should Be '<br/>    * item1<br/>      - item2<br/>      + item3'
+		}
+
+		It 'no line breaks with standard 4-space indent produced by Get-Help' {
+			$text = ($4space+'line one'), ($4space+'line two'), ($4space+'line three')
+			(ApplyLineBreaks $text) -join '' |
+			Should Be '    line one    line two    line three'
+		}
+
+		$testCases = @(
+			@{ spaces = ' '; description = '1' }
+			@{ spaces = '  '; description = '2' }
+			@{ spaces = '   '; description = '3' }
+		)
+		It 'includes auto-break for <description> leading spaces beyond standard 4-space indent' -testcases $testCases {
+			param ($spaces)
+			$text = ($4space+'line one'), ($4space+$spaces+'line two'), ($4space+'line three')
+			(ApplyLineBreaks $text) -join '' |
+			Should Be "${4space}line one<br/>${4space}${spaces}line two${4space}line three"
+		}
+
+		It 'includes auto-break for ps prompt on second line' {
+			$text = '    cmdlet1', '    PS&gt; cmdlet2'
+			(ApplyLineBreaks $text) -join '' |
+			Should Be "${4space}cmdlet1<br/>${4space}PS&gt; cmdlet2"
 		}
 
 		It 'applies double-space for a blank line' {
@@ -174,7 +487,7 @@ Describe 'Convert-HelpToHtmlTree' {
 			Should Be '<br/>* item1<br/>* item2<br/><br/>next para...'
 		}
 		It 'omits break following a pre-formatted item' {
-			$text = ($eightSpaces + 'one'), '------ header ----'
+			$text = ($8space + 'one'), '------ header ----'
 			(ApplyLineBreaks $text) -join '' |
 			Should Be '<pre>        one</pre><strong>------ header ----</strong><br/>'
 		}
@@ -386,35 +699,47 @@ Describe 'Convert-HelpToHtmlTree' {
 			$result = CorrectParamIndents (GenerateText $paramName)
 			$result.Count | Should Be ($stdProperties.Count + 1)
 			$result[0] | Should Match $paramName
-			$result[1] | Should BeNullOrEmpty
+			$result[1] | Should Match '^\s*$'
 			$result[2] | Should Match 'Required'
 		}
 
-		It 'Retains leading spaces on properties' {
+		It 'Does not separate parameter name from description with blank line' {
 			$paramName = 'SomeParam'
-			(CorrectIndents (GenerateText $paramName)) -join '' |
+			$result = CorrectParamIndents (GenerateText $paramName $stdDescription)
+			$result.Count | Should Be ($stdProperties.Count + 1 + $stdDescription.Count)
+			$result[0] | Should Match $paramName
+			$result[1] | Should Match ($stdDescription[0] -replace $8space)
+		}
+
+		It 'Separates description from properties with blank line' {
+			$descCount = $stdDescription.Count
+			$paramName = 'SomeParam'
+			$result = CorrectParamIndents (GenerateText $paramName $stdDescription)
+			$result[$descCount] | Should Be ($stdDescription[$descCount-1] -replace $8space)
+			$result[$descCount+1] | Should BeNullOrEmpty
+			$result[$descCount+2] | Should Match 'Required'
+		}
+
+		It 'Removes leading spaces on description except for the first line' {
+			$descCount = $stdDescription.Count
+			$paramName = 'SomeParam'
+			$result = CorrectParamIndents (GenerateText $paramName $stdDescription)
+			$result[1] | Should Be ($stdDescription[0] -replace $8space, "${4space}${2space}")
+			2..$descCount | % { $result[$_] | Should be ($stdDescription[$_-1] -replace $8space) }
+		}
+
+		It 'Retains leading spaces on properties when no description' {
+			$paramName = 'SomeParam'
+			(CorrectParamIndents (GenerateText $paramName)) -join '' |
 				Should Match "$($8space)Required.*$($8space)Position.*$($8space)Default.*($8space)Accept pipeline.*($8space)Accept wildcard"
 		}
 
-		It 'Strips leading spaces from description but retains spaces on properties' {
+		It 'Retains leading spaces on properties when description present' {
+			$descCount = $stdDescription.Count
 			$paramName = 'SomeParam'
-			$result.Count | Should Be ($stdProperties.Count + $stdDescription.Count +  1)
-
-			$result[0] | Should Match $paramName
 			$result = CorrectParamIndents (GenerateText $paramName $stdDescription)
-
-			$startingIndex = 1 # i.e. skip param name
-			for ($i = 0; $i -lt $stdDescription.Length; $i++) {
-				$result[$i+$startingIndex] |
-					Should Be $stdDescription[$i].TrimStart() # i.e. spaces are now gone
-			}
-
-			$startingIndex = 1 + $stdDescription.Length # i.e. skip param name & desc
-
-			$result[$startingIndex] | Should BeNullOrEmpty # spaces gone on blank line
-			for ($i = 1; $i -lt $stdProperties.Length; $i++) {
-				$result[$i+$startingIndex] |
-					Should Be $stdProperties[$i] # i.e. spaces still present on non-empties
+			1..($stdProperties.Length-1) | % {
+				$result[$descCount+1+$_] | Should Be $stdProperties[$_]
 			}
 		}
 	}

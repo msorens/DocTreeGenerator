@@ -136,6 +136,7 @@ You will also see conditional section definitions of the form
 + the single contents page ("contents"),
 + the module index pages, one per module ("module"), and
 + the function pages, one per exported function ("function").
+
 The content of these conditional sections (which may be any HTML) is included only on the pages of the corresponding type, while the other conditional sections are suppressed.  Note that the module-specific place holders discussed earlier (e.g. {module.xyz}) may be used in module pages or function pages only.
 
 ==== Output Enhancements: Live links ====
@@ -172,8 +173,27 @@ Convert-HelpToHtmlTree also adds some simple CSS styling to the generated web pa
 + Outputs portions of text you designate in a fixed-width font; simply start a line with 4 spaces for this (useful typically for code samples).
 + Recognizes simple lists; any line beginning with an asterisk, plus, or minus will force a line break.
 + Recognizes simple headers; any line beginning or ending with a run of 4 of any of these characters (=_+*#~-) will be emboldened and force a line break.
-+ Highlights initial code sample in each example. (Note that, just like Get-Help, ONLY the first line immediately following the .EXAMPLE directive is treated as the code sample, so resist the urge to put line breaks in your sample!)
 + Stylizes the syntax section with bold and italics for easier visual recognition.
++ Highlights initial code sample in each example.
+
+On that last point, the code sample is by convention just the first line of text in your example block, ending with a carriage return. But what if your example cmdlet takes six arguments and you have a really long line?  You could break that up into smaller lines with PowerShell's line continuation character, the backtick.  Convention, though (as defined by how the .NET cmdlets do it), is to always put a single example command on one line, and let the window width determine where the line wraps.  DocTreeGenerator, however, provides the flexibility to handle multiple lines if you really want to break a line with backticks. Actually, it just coincidentally supports backticks; support for a multiple-line example was added to accommodate two other use cases: pipes in your example and multiple commands in your example. That is, one could argue that it is easier to digest this:
+    Get-Something -a 1 -b 2 -c 3 |
+    Get-Something Else |
+    Get-MoreStuff
+
+than this:
+    Get-Something -a 1 -b 2 -c 3 | Get-Something Else | Get-MoreStuff
+
+The trick to get the HTML to have those line breaks is simply to add one to three leading spaces to the lines after the first line (if you go to four spaces, then it becomes a pre-formatted block).
+
+And similarly, you might prefer this:
+    PS> Get-Something -a 1 -b 2 -c 3
+    PS> Get-Something Else
+
+instead of this:
+    PS> Get-Something -a 1 -b 2 -c 3; Get-Something Else
+
+If you use the canonical "PS>" prompt in your example, you do not need the leading spaces; it recognizes the prompt.
 
 .PARAMETER TargetDir
 Directory name to store the generated HTML documentation set.
@@ -723,8 +743,11 @@ function ConvertTo-Body([hashtable]$sectionHash, [string[]]$sectionOrder, [strin
 			$section += Get-HtmlDiv (ApplyLineBreaks (HtmlEncode $sectionHash[$sectionName]))
 			$break = Get-HtmlLineBreak
 			# add CSS class name
-			$section = $section -replace "(EXAMPLE\s+\d+\s+------*.*(?:\s*$break)+\s*)(.*?)(\s*$break)",
-					"`$1$(Get-HtmlSpan `$2 -Class $CSS_PS_CMD)`$3"
+			# (-replace does not support RegexOptions so need to use Regex.Replace)
+			$section = [regex]::Replace($section,
+						"(EXAMPLE\s+\d+\s+------*.*?$break\s*$break\s*)(.*?)(\s*$break\s*$break)",
+						"`$1$(Get-HtmlSpan `$2 -Class $CSS_PS_CMD)`$3",
+						[System.Text.RegularExpressions.RegexOptions]::SingleLine)
 		}
 		elseif ($sectionName -eq $SYNTAX_SECTION)
 		{

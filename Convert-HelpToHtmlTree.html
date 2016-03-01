@@ -187,6 +187,7 @@
 <br/>
     + the function pages, one per exported function ("function").
 <br/>
+<br/>
     The content of these conditional sections (which may be any HTML) is included only on the pages of the corresponding type, while the other conditional sections are suppressed.  Note that the module-specific place holders discussed earlier (e.g. {module.xyz}) may be used in module pages or function pages only.
 <br/>
 <br/>
@@ -235,9 +236,30 @@
 <br/>
     + Recognizes simple headers; any line beginning or ending with a run of 4 of any of these characters (=_+*#~-) will be emboldened and force a line break.
 <br/>
-    + Highlights initial code sample in each example. (Note that, just like Get-Help, ONLY the first line immediately following the .EXAMPLE directive is treated as the code sample, so resist the urge to put line breaks in your sample!)
-<br/>
     + Stylizes the syntax section with bold and italics for easier visual recognition.
+<br/>
+    + Highlights initial code sample in each example.
+<br/>
+<br/>
+    On that last point, the code sample is by convention just the first line of text in your example block, ending with a carriage return. But what if your example cmdlet takes six arguments and you have a really long line?  You could break that up into smaller lines with PowerShell's line continuation character, the backtick.  Convention, though (as defined by how the .NET cmdlets do it), is to always put a single example command on one line, and let the window width determine where the line wraps.  DocTreeGenerator, however, provides the flexibility to handle multiple lines if you really want to break a line with backticks. Actually, it just coincidentally supports backticks; support for a multiple-line example was added to accommodate two other use cases: pipes in your example and multiple commands in your example. That is, one could argue that it is easier to digest this:
+<pre>        Get-Something -a 1 -b 2 -c 3 |</pre>
+<pre>        Get-Something Else |</pre>
+<pre>        Get-MoreStuff</pre>
+<br/>
+    than this:
+<pre>        Get-Something -a 1 -b 2 -c 3 | Get-Something Else | Get-MoreStuff</pre>
+<br/>
+    The trick to get the HTML to have those line breaks is simply to add one to three leading spaces to the lines after the first line (if you go to four spaces, then it becomes a pre-formatted block).
+<br/>
+<br/>
+    And similarly, you might prefer this:
+<pre>        PS&gt; Get-Something -a 1 -b 2 -c 3</pre>
+<pre>        PS&gt; Get-Something Else</pre>
+<br/>
+    instead of this:
+<pre>        PS&gt; Get-Something -a 1 -b 2 -c 3; Get-Something Else</pre>
+<br/>
+    If you use the canonical "PS&gt;" prompt in your example, you do not need the leading spaces; it recognizes the prompt.
 <br/>
 <br/></div>
 </div>
