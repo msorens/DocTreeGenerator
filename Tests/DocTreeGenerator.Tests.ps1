@@ -6,6 +6,22 @@ $2space = ' ' * 2
 $4space = ' ' * 4
 $8space = ' ' * 8
 
+$stdProperties  = @(
+	$8space
+	"$($8space)Required?                    false"
+	"$($8space)Position?                    3"
+	"$($8space)Default value"
+	"$($8space)Accept pipeline input?       false"
+	"$($8space)Accept wildcard characters?  false"
+)
+$stdDescription = @(
+	"$($8space)para one, line one."
+	"$($8space)para one, line two."
+	$8space
+	"$($8space)para two."
+)
+
+
 function Stringify([string[]]$text, [switch]$stripHtml)
 {
 	 $result = $text -join '' -replace "`r" -replace "`n"
@@ -21,6 +37,28 @@ function StripLineBreaks([string]$text)
 function SplitToArray([string]$text)
 {
 	$text -split "`r`n"
+}
+
+function GenerateText([string]$paramName, [string[]]$description)
+{
+	$text = ,"  -$paramName"
+	if ($description) {
+		$description | % { $text += $_ }
+	}
+	$stdProperties | % { $text += $_ }
+	$text
+}
+
+function GetArrayIndex([string[]]$list, [string]$target)
+{
+	$matchIndex = -1
+	for ($i = 0; $i -lt $list.Count; $i++) {
+		if ($list[$i] -match $target) {
+			$matchIndex = $i
+			break
+		}
+	}
+	$matchIndex
 }
 
 Describe 'Convert-HelpToHtmlTree' {
@@ -348,10 +386,49 @@ $cmd\S+
 			'<br/></div>'
 		) -join '') -replace '[$[+*?()\\.]','\$&'
 
-		It 'xxx' {
+		It 'correctly renders entire parameter section' {
 			$result = Stringify (ConvertTo-Body $stdSections $stdSectionOrder 'any')
 
 			$result | Should Match $expected
+		}
+
+		It 'Separates parameter name from properties with blank line' {
+			$paramName = 'SomeParam'
+			$stdSections.Parameters = GenerateText $paramName
+
+			$result = ConvertTo-Body $stdSections $stdSectionOrder 'any'
+
+			$paramResult = ($result | ? { $_ -match 'PARAMETERS' }) -split "`n"
+			$i = GetArrayIndex $paramResult $paramName
+			$paramResult[$i+1] | Should Match '<br/>'
+			$paramResult[$i+2] | Should Match '<br/>'
+			$paramResult[$i+3] | Should Match 'Required'
+		}
+
+		It 'Does not separate parameter name from description with blank line but includes a line break' {
+			$paramName = 'SomeParam'
+			$stdSections.Parameters = GenerateText $paramName $stdDescription
+
+			$result = ConvertTo-Body $stdSections $stdSectionOrder 'any'
+
+			$paramResult = ($result | ? { $_ -match 'PARAMETERS' }) -split "`n"
+			$i = GetArrayIndex $paramResult $paramName
+			$paramResult[$i+1] | Should Match '<br/>'
+			$paramResult[$i+2] | Should Match ($stdDescription[0] -replace $8space)
+		}
+
+		It 'Separates description from properties with blank line' {
+			$paramName = 'SomeParam'
+			$stdSections.Parameters = GenerateText $paramName $stdDescription
+
+			$result = ConvertTo-Body $stdSections $stdSectionOrder 'any'
+
+			$paramResult = ($result | ? { $_ -match 'PARAMETERS' }) -split "`n"
+			$descCount = $stdDescription.Count
+			$i = GetArrayIndex $paramResult ($stdDescription[$descCount-1] -replace $8space)
+			$paramResult[$i+1] | Should Match '<br/>'
+			$paramResult[$i+2] | Should Match '<br/>'
+			$paramResult[$i+3] | Should Match 'Required'
 		}
 	}
 
@@ -650,32 +727,6 @@ $cmd\S+
 	}
 
 	Context 'Parameters' {
-		$8space = '        '
-		$stdProperties  = @(
-			$8space
-			"$($8space)Required?                    false"
-			"$($8space)Position?                    3"
-			"$($8space)Default value"
-			"$($8space)Accept pipeline input?       false"
-			"$($8space)Accept wildcard characters?  false"
-		)
-		$stdDescription = @(
-			"$($8space)para one, line one."
-			"$($8space)para one, line two."
-			$8space
-			"$($8space)para two."
-		)
-
-		function GenerateText([string]$paramName, [string[]]$description)
-		{
-			$text = ,"  -$paramName"
-			if ($description) {
-				$description | % { $text += $_ }
-			}
-			$stdProperties | % { $text += $_ }
-			$text
-		}
-
 		It 'Emboldens parameter name by itself' {
 			$paramName = 'SomeParam'
 			$text = "  -$paramName"
