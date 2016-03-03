@@ -48,6 +48,7 @@ Other issues in this section are things to watch out for that might cause undo c
 1. [PS] You cannot have a preformatted block immediately following an example (a tab or 4+ leading spaces signals a preformatted line). If you do, the first line--in this example the column headers--will not be preformatted.
 (You can observe this problem if you just run Get-Help for your cmdlet on the command-line.)
 
+```
 ============ EXCERPT FROM A PS DOC-COMMENT SECTION ============================
 .EXAMPLE
 PS> Show-Packages .\default.proj
@@ -57,9 +58,11 @@ PS> Show-Packages .\default.proj
 	Test              UnitTest;IntegrationTest
 	Analyze
 ===============================================================================
+```
 
 Remedy:
 Add a regular text paragraph between the line of code and the start of the preformatted block:
+```
 ============ EXCERPT FROM A PS DOC-COMMENT SECTION ============================
 .EXAMPLE
 PS> Show-Packages .\default.proj
@@ -70,6 +73,7 @@ This line could say anything; mainly it is to fix Get-Help's formatting issue!
 	Test              UnitTest;IntegrationTest
 	Analyze
 ===============================================================================
+```
 
 2. [PS,C#] If you start a line with an asterisk, plus, or minus, you are asking to force a line break. (Presumably you are enumerating items in a list.) But watch out that you do not do this inadvertantly. (If, for example, you are talking about code you might mention a "-Force" option--just make sure that is not the first thing on the line, otherwise it will end the paragraph prematurely at that point.)
 
