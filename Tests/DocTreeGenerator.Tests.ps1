@@ -2,68 +2,66 @@ Import-Module "$PSScriptRoot\..\DocTreeGenerator.psd1" -force
 
 InModuleScope DocTreeGenerator {
 
-$2space = ' ' * 2
-$4space = ' ' * 4
-$8space = ' ' * 8
+	$2space = ' ' * 2
+	$4space = ' ' * 4
+	$8space = ' ' * 8
 
-$stdProperties  = @(
-	$8space
-	"$($8space)Required?                    false"
-	"$($8space)Position?                    3"
-	"$($8space)Default value"
-	"$($8space)Accept pipeline input?       false"
-	"$($8space)Accept wildcard characters?  false"
-)
-$stdDescription = @(
-	"$($8space)para one, line one."
-	"$($8space)para one, line two."
-	$8space
-	"$($8space)para two."
-)
+	$stdProperties  = @(
+		$8space
+		"$($8space)Required?                    false"
+		"$($8space)Position?                    3"
+		"$($8space)Default value"
+		"$($8space)Accept pipeline input?       false"
+		"$($8space)Accept wildcard characters?  false"
+	)
+	$stdDescription = @(
+		"$($8space)para one, line one."
+		"$($8space)para one, line two."
+		$8space
+		"$($8space)para two."
+	)
 
 
-function Stringify([string[]]$text, [switch]$stripHtml)
-{
-	 $result = $text -join '' -replace "`r" -replace "`n"
-	 if ($stripHtml) { $result -replace '<.*?>' }
-	 else { $result }
-}
-
-function StripLineBreaks([string]$text)
-{
-	$text -replace "`r`n"
-}
-
-function SplitToArray([string]$text)
-{
-	$text -split "`r`n"
-}
-
-function GenerateText([string]$paramName, [string[]]$description)
-{
-	$text = ,"  -$paramName"
-	if ($description) {
-		$description | % { $text += $_ }
+	function Stringify([string[]]$text, [switch]$stripHtml)
+	{
+		 $result = $text -join '' -replace "`r" -replace "`n"
+		 if ($stripHtml) { $result -replace '<.*?>' }
+		 else { $result }
 	}
-	$stdProperties | % { $text += $_ }
-	$text
-}
 
-function GetArrayIndex([string[]]$list, [string]$target)
-{
-	$matchIndex = -1
-	for ($i = 0; $i -lt $list.Count; $i++) {
-		if ($list[$i] -match $target) {
-			$matchIndex = $i
-			break
+	function StripLineBreaks([string]$text)
+	{
+		$text -replace "`r`n"
+	}
+
+	function SplitToArray([string]$text)
+	{
+		$text -split "`r`n"
+	}
+
+	function GenerateText([string]$paramName, [string[]]$description)
+	{
+		$text = ,"  -$paramName"
+		if ($description) {
+			$description | % { $text += $_ }
 		}
+		$stdProperties | % { $text += $_ }
+		$text
 	}
-	$matchIndex
-}
 
-Describe 'Convert-HelpToHtmlTree' {
+	function GetArrayIndex([string[]]$list, [string]$target)
+	{
+		$matchIndex = -1
+		for ($i = 0; $i -lt $list.Count; $i++) {
+			if ($list[$i] -match $target) {
+				$matchIndex = $i
+				break
+			}
+		}
+		$matchIndex
+	}
 
-	Context 'Body/links' {
+	Describe 'Body/links' {
 
 		Mock Write-Host
 		Mock Get-CmdletDocLinks
