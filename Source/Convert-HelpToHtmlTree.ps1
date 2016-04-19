@@ -27,9 +27,9 @@ For simplicity, the discussion below focuses on cmdlets written in PowerShell, b
 ==== File Organization ====
 
 Convert-HelpToHtmlTree needs some additional doc-comments to generate a cohesive API for you.
-(1) Each module (x.psm1 or x.dll) must have an associated manifest (x.psd1) in the same directory and the manifest must include a Description property.
-(2) Each module must have an associated overview (module_overview.html) in the same directory. This is a standard HTML file.  The contents of the <body> element are extracted verbatim as the introductory text of the index.html page for each module.
-(3) Each namespace must also include an associated overview (namespace_overview.html).  This is a standard HTML file.  The contents of the <body> element are extracted verbatim as the introductory text of each namespace in the master index.html page.
+  (1) Each module (x.psm1 or x.dll) must have an associated manifest (x.psd1) in the same directory and the manifest must include a Description property.
+  (2) Each module must have an associated overview (module_overview.html) in the same directory. This is a standard HTML file, i.e., it must have an <html> element containing a <body> element containing some container element. The contents of the <body> element are extracted verbatim as the introductory text of the index.html page for each module.
+  (3) Each namespace must also include an associated overview (namespace_overview.html).  This is a standard HTML file, i.e., it must have an <html> element containing a <body> element containing some container element.  The contents of the <body> element are extracted verbatim as the introductory text of each namespace in the master index.html page.
 
 Note that I use the term "namespace" here informally because (as of v3) PowerShell does not yet have the notion of namespaces.  Convert-HelpToHtmlTree, however, requires you to structure your modules grouped in namespaces as shown in the sample input tree below.  Thus, if you have a module MyStuff.psm1, normal PowerShell conventions require you to store this in a path like this:
 
@@ -610,19 +610,49 @@ function Get-Overview($path, $filename)
 	$overviewPath = Join-Path $path $filename
 	$details = $null
 	if (Test-Path $overviewPath) {
-		try {
-			$data = [xml](get-content $overviewPath)
-			$details = $data.html.body.InnerXml
-		}
-		catch [Exception] {
-			[void](Handle-MissingValue $_.Exception.Message)
-		}
+	    $details = Get-OverviewContent $overviewPath
 	}
 	if (!$details) {
 		$displayName = Get-RelevantPath $overviewPath
 		$details = Get-HtmlPara `
 			(Handle-MissingValue "Missing summary (from $displayName)") }
 	$details
+}
+
+function Get-OverviewContent([string]$overviewPath)
+{
+	try {
+		$data = [xml](Get-Content $overviewPath)
+		if ($data.SelectSingleNode('/html') -eq $null) {
+			[void](Handle-MissingValue 'Overview must be a complete, valid HTML file')
+			return
+		}
+
+		# With a DocType, $data.html is an array with the HTML in the second element.
+		# Without a DocType, $data.html is the HTML itself.
+		# Where-Object normalizes it, and forcing to a list allows for error checking.
+		$htmlList = @($data.html | Where-Object {$_ -is [System.Xml.XmlElement]})
+
+		# An empty <html> element will be caught by the first predicate here,
+		# and a missing body element will be caught by the second predicate.
+		if ($htmlList.Length -eq 0 -or $htmlList[0].SelectSingleNode('body') -eq $null) {
+			[void](Handle-MissingValue 'Overview must contain a <body> element')
+			return
+		}
+		$html = $htmlList[0]
+		if ($html.body -is [string] -and $html.body -eq '') {
+			[void](Handle-MissingValue "Overview's <body> must be non-empty.")
+			return
+		}
+		if ($html.body -is [string]) {
+			[void](Handle-MissingValue "Overview's <body> content must be in a child element (e.g. <p>...</p>).")
+			return
+		}
+		return $html.body.InnerXml
+	}
+	catch [Exception] {
+		[void](Handle-MissingValue $_.Exception.Message)
+	}
 }
 
 # Trim off the module directory prefix.

@@ -795,6 +795,113 @@ $cmd\S+
 			}
 		}
 	}
-}
+
+	Describe 'Overview' {
+		Mock Write-Host
+		Mock Get-CmdletDocLinks
+		Mock Get-Template { 'any' }
+		Mock Test-Path { $true }
+		Mock Handle-MissingValue { 'missing value' }
+		Init-Variables
+
+		$testCases = @(
+			@{ content='foo';  description='non-html' }
+			@{ content='<html>';  description='mal-formed html 1' }
+			@{ content='<html></html';  description='mal-formed html 2' }
+			@{ content='<html><body></html>';  description='mal-formed html 3' }
+		)
+		It 'Reports <description> as invalid content' -TestCases $testCases {
+			param ($content, $msg)
+			$filename = 'anyfile.html'
+			Mock Get-Content { $content }
+			Get-Overview $moduleRoot $filename
+			Assert-MockCalled Handle-MissingValue 1 -ParameterFilter { $message -match "cannot convert.*$content" }  -Scope It
+			Assert-MockCalled Handle-MissingValue 1 -ParameterFilter { $message -match "missing summary.*$filename" }  -Scope It
+		}
+
+		$testCases = @(
+			@{ content='<p></p>';  msg='Overview.*must be a complete, valid HTML file'; description='no root html element' }
+			@{ content='<html></html>';  msg='Overview.*must contain.*body'; description='empty html' }
+			@{ content='<html><head></head></html>';  msg='Overview.*must contain.*body'; description='html with no body' }
+			@{ content='<html><body></body></html>'; msg='body.*must be non-empty'; description='empty body' }
+			@{ content='<html><body>raw text</body></html>'; msg='body.*must be in a child element'; description='raw body' }
+		)
+		It 'Reports <description> as invalid content' -TestCases $testCases {
+			param ($content, $msg)
+			$filename = 'anyfile.html'
+			Mock Get-Content { $content }
+			Get-Overview $moduleRoot $filename
+			Assert-MockCalled Handle-MissingValue 1 -ParameterFilter { $message -match $msg }  -Scope It
+			Assert-MockCalled Handle-MissingValue 1 -ParameterFilter { $message -match "missing summary.*$filename" }  -Scope It
+		}
+
+		$testCases = @(
+			@{ content='<p></p>';  description='empty element' }
+			@{ content='<p>overview text</p>';  description='nominal paragraph' }
+		)
+		It 'Returns <description> as body content' -TestCases $testCases {
+			param ($content)
+			$filename = 'anyfile.html'
+			Mock Get-Content { "<html><body>$content</body></html>" }
+			$result = Get-Overview $moduleRoot $filename
+			$result | Should Match $content
+		}
+
+		It 'Handles nominal paragraph, multi-line' {
+			$content = @'
+<p>
+Module Description
+</p>
+'@
+			$frame = @"
+<html>
+<body>
+$content
+</body>
+</html>
+"@
+			$filename = 'anyfile.html'
+			Mock Get-Content { $frame }
+			$result = Get-Overview $moduleRoot $filename
+			Stringify $result | Should Match (Stringify $content)
+		}
+
+		It 'Handles standard attributes on html element' {
+			$content = @'
+<p>Module Description</p>
+'@
+			$frame = @"
+<html xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.w3.org/1999/xhtml   http://www.w3.org/2002/08/xhtml/xhtml1-transitional.xsd" xml:lang="en" lang="en">
+<body>
+$content
+</body>
+</html>
+"@
+			$filename = 'anyfile.html'
+			Mock Get-Content { $frame }
+			$result = Get-Overview $moduleRoot $filename
+			Stringify $result | Should Match (Stringify $content)
+		}
+
+		It 'Handles standard doctype' {
+			$content = @'
+<p>Module Description</p>
+'@
+			$frame =
+@"
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<body>
+$content
+</body>
+</html>
+"@
+			$filename = 'anyfile.html'
+			Mock Get-Content { $frame }
+			$result = Get-Overview $moduleRoot $filename
+			Stringify $result | Should Match (Stringify $content)
+		}
+
+	}
 
 }
