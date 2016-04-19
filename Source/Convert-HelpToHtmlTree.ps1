@@ -177,21 +177,21 @@ Convert-HelpToHtmlTree also adds some simple CSS styling to the generated web pa
 + Highlights initial code sample in each example.
 
 On that last point, the code sample is by convention just the first line of text in your example block, ending with a carriage return. But what if your example cmdlet takes six arguments and you have a really long line?  You could break that up into smaller lines with PowerShell's line continuation character, the backtick.  Convention, though (as defined by how the .NET cmdlets do it), is to always put a single example command on one line, and let the window width determine where the line wraps.  DocTreeGenerator, however, provides the flexibility to handle multiple lines if you really want to break a line with backticks. Actually, it just coincidentally supports backticks; support for a multiple-line example was added to accommodate two other use cases: pipes in your example and multiple commands in your example. That is, one could argue that it is easier to digest this:
-    Get-Something -a 1 -b 2 -c 3 |
-    Get-Something Else |
-    Get-MoreStuff
+	Get-Something -a 1 -b 2 -c 3 |
+	Get-Something Else |
+	Get-MoreStuff
 
 than this:
-    Get-Something -a 1 -b 2 -c 3 | Get-Something Else | Get-MoreStuff
+	Get-Something -a 1 -b 2 -c 3 | Get-Something Else | Get-MoreStuff
 
 The trick to get the HTML to have those line breaks is simply to add one to three leading spaces to the lines after the first line (if you go to four spaces, then it becomes a pre-formatted block).
 
 And similarly, you might prefer this:
-    PS> Get-Something -a 1 -b 2 -c 3
-    PS> Get-Something Else
+	PS> Get-Something -a 1 -b 2 -c 3
+	PS> Get-Something Else
 
 instead of this:
-    PS> Get-Something -a 1 -b 2 -c 3; Get-Something Else
+	PS> Get-Something -a 1 -b 2 -c 3; Get-Something Else
 
 If you use the canonical "PS>" prompt in your example, you do not need the leading spaces; it recognizes the prompt.
 
