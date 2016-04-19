@@ -10,7 +10,7 @@
 ModuleToProcess = 'DocTreeGenerator.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.0.04'
+ModuleVersion = '2.0.05'
 
 # ID used to uniquely identify this module
 GUID = 'e20b6531-1797-44e4-81ef-f8a8ebab5b37'

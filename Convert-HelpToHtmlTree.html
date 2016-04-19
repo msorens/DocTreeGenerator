@@ -67,9 +67,12 @@
 <br/>
 <br/>
     Convert-HelpToHtmlTree needs some additional doc-comments to generate a cohesive API for you.
-    (1) Each module (x.psm1 or x.dll) must have an associated manifest (x.psd1) in the same directory and the manifest must include a Description property.
-    (2) Each module must have an associated overview (module_overview.html) in the same directory. This is a standard HTML file.  The contents of the &lt;body&gt; element are extracted verbatim as the introductory text of the index.html page for each module.
-    (3) Each namespace must also include an associated overview (namespace_overview.html).  This is a standard HTML file.  The contents of the &lt;body&gt; element are extracted verbatim as the introductory text of each namespace in the master index.html page.
+<br/>
+      (1) Each module (x.psm1 or x.dll) must have an associated manifest (x.psd1) in the same directory and the manifest must include a Description property.
+<br/>
+      (2) Each module must have an associated overview (module_overview.html) in the same directory. This is a standard HTML file, i.e., it must have an &lt;html&gt; element containing a &lt;body&gt; element containing some container element. The contents of the &lt;body&gt; element are extracted verbatim as the introductory text of the index.html page for each module.
+<br/>
+      (3) Each namespace must also include an associated overview (namespace_overview.html).  This is a standard HTML file, i.e., it must have an &lt;html&gt; element containing a &lt;body&gt; element containing some container element.  The contents of the &lt;body&gt; element are extracted verbatim as the introductory text of each namespace in the master index.html page.
 <br/>
 <br/>
     Note that I use the term "namespace" here informally because (as of v3) PowerShell does not yet have the notion of namespaces.  Convert-HelpToHtmlTree, however, requires you to structure your modules grouped in namespaces as shown in the sample input tree below.  Thus, if you have a module MyStuff.psm1, normal PowerShell conventions require you to store this in a path like this:
@@ -269,7 +272,7 @@
 <br/>
     -<strong>Namespaces &lt;String[]&gt;</strong>
 <br/>
-One or more names of top-level directories under your user-level
+      One or more names of top-level directories under your user-level
 module repository (...Documents\WindowsPowerShell\Modules) to document.
 Wilcards are permitted.
 <br/>
@@ -282,7 +285,7 @@ Wilcards are permitted.
 <br/>
     -<strong>TargetDir &lt;String&gt;</strong>
 <br/>
-Directory name to store the generated HTML documentation set.
+      Directory name to store the generated HTML documentation set.
 If not supplied, the current directory is used.
 <br/>
 <br/>
@@ -294,7 +297,7 @@ If not supplied, the current directory is used.
 <br/>
     -<strong>TemplateName &lt;String&gt;</strong>
 <br/>
-Name of your custom template file to use to generate each HTML file.
+      Name of your custom template file to use to generate each HTML file.
 If not supplied, the default template (psdoc_template.html) is used;
 it is stored in the same directory as this module file.
 <br/>
@@ -307,7 +310,7 @@ it is stored in the same directory as this module file.
 <br/>
     -<strong>DocTitle &lt;String&gt;</strong>
 <br/>
-The value of DocTitle fills in the TITLE place holder on the overview page
+      The value of DocTitle fills in the TITLE place holder on the overview page
 and the SUBTITLE place holder on all subordinate pages.
 The current namespace is affixed to the beginning, e.g.
 with a namespace of "Abc" and a DocTitle of "Libraries v1.0", the 
@@ -327,7 +330,7 @@ in a smaller font to provide context.
 <br/>
     -<strong>Copyright &lt;String&gt;</strong>
 <br/>
-The value of Copyright fills in the COPYRIGHT place holder on each page.
+      The value of Copyright fills in the COPYRIGHT place holder on each page.
 Using the default template, Copyright appears at the bottom of each page.
 If you do not intend to supply this value edit the default template
 to remove the rest of the copyright phrase.
@@ -341,7 +344,7 @@ to remove the rest of the copyright phrase.
 <br/>
     -<strong>RevisionDate &lt;String&gt;</strong>
 <br/>
-The value of RevisionDate fills in the REVDATE place holder on each page.
+      The value of RevisionDate fills in the REVDATE place holder on each page.
 Using the default template, RevisionDate appears at the bottom of each page.
 If you do not intend to supply this value edit the default template
 to remove the rest of the revision date phrase.
@@ -355,7 +358,7 @@ to remove the rest of the revision date phrase.
 <br/>
     -<strong>EnableExit [&lt;SwitchParameter&gt;]</strong>
 <br/>
-Causes Convert-HelpToHtmlTree to exit with an exit code equal to the number of errors detected.
+      Causes Convert-HelpToHtmlTree to exit with an exit code equal to the number of errors detected.
 Use this to "fail" a build when there are documentation errors.
 Note that this switch causes the invoking shell to exit upon completion of the cmdlet as well!
 Thus, typically you do *not* want to use this switch interactively.

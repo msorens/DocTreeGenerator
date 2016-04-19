@@ -7,6 +7,18 @@ IMPROVEMENTS:
 BUG FIXES:
 
 
+## 2.0.05 (April 19, 2016)
+
+IMPROVEMENTS:
+  - Report more specific errors when problems with an overview file are encountered.
+  - Added template and script for regenerating self-documentation (i.e. DocTreeGenerator itself).
+
+
+BUG FIXES:
+  - Overview files were not returning valid results with a DocType definition (DTD) present. [#3](https://github.com/msorens/DocTreeGenerator/issues/3)
+
+
+
 ## 2.0.04 (March 1, 2016)
 
 IMPROVEMENTS:
