@@ -122,7 +122,7 @@ Describe 'Convert-HelpToHtmlTree' {
 		}
 	}
 
-	Context 'Body/examples' {
+	Describe 'Body/examples' {
 
 		Mock Write-Host
 		Mock Get-CmdletDocLinks
@@ -135,7 +135,7 @@ Describe 'Convert-HelpToHtmlTree' {
 		$exampleHeader = '<h2>EXAMPLES</h2>'
 
 		$stdExample1 = '    -------------------------- EXAMPLE 1 --------------------------',
-   			'',
+			'',
 		    "    $cmd",
 			'',
 			'',
@@ -301,7 +301,7 @@ $cmd\S+
 
 	}
 
-	Context 'Body/parameters' {
+	Describe 'Body/parameters' {
 
 		Mock Write-Host
 		Mock Get-CmdletDocLinks
@@ -432,7 +432,7 @@ $cmd\S+
 		}
 	}
 
-	Context 'Indenting and line breaks' {
+	Describe 'Indenting and line breaks' {
 
 		It 'omits break for single words' {
 			$text = 'one', 'two', 'three'
@@ -571,7 +571,7 @@ $cmd\S+
 
 	}
 
-	Context 'Template available' {
+	Describe 'Template available' {
 		Mock Get-Content
 
 		It 'Uses default if parameter not supplied' {
@@ -593,7 +593,7 @@ $cmd\S+
 		}
 	}
 
-	Context 'Template not available' {
+	Describe 'Template not available' {
 
 		It 'Reports error if default template not found' {
 			$script:TemplateName = $null
@@ -606,8 +606,10 @@ $cmd\S+
 		}
 	}
 
-	Context 'Links' {
+	Describe 'Links' {
+		Mock Write-Host
 		Mock Get-Template { "any" }
+
 		$stdTestCases = @(
 			@{ template = '{0}'; description = 'no extra spaces'}
 			@{ template = '  {0}'; description = 'extra spaces at start of line'}
@@ -726,7 +728,8 @@ $cmd\S+
 		}
 	}
 
-	Context 'Parameters' {
+	Describe 'Parameters' {
+
 		It 'Emboldens parameter name by itself' {
 			$paramName = 'SomeParam'
 			$text = "  -$paramName"
