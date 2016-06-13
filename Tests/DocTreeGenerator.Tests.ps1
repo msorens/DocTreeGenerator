@@ -672,6 +672,22 @@ $cmd\S+
 				Should Be "<li><a href='../../$namespace/$someModule/$cmd.html'>$cmd</a></li>"
 		}
 
+		It 'Generates no link for unidentified custom function in different module' -TestCases $stdTestCases {
+			param ($template, $description)
+			$someModule = 'someModule'
+			$namespace = 'someNS'
+			$cmd = 'New-Frobdingnab'
+			$inputText = $template -f $cmd
+			Mock Get-CmdletDocLinks { return @{ } }
+			Mock Get-Command `
+				-MockWith { return $null } `
+				-ParameterFilter { $Name -eq $cmd }
+			Init-Variables
+
+			Add-Links 'currentModule' $inputText |
+				Should Be "<li>$cmd</li>"
+		}
+
 		It 'Generates no link for plain text with <description>' -TestCases $stdTestCases {
 			param ($template, $description)
 			$plainText = 'not a cmdlet'

@@ -813,10 +813,14 @@ function Add-Links($currentModuleName, $text)
 				if ($cmd) {
 					$thisModName = $cmd.ModuleName
 					$thisNamespace = ($cmd.Module.Path -split '\\')[$GRANDPARENT_INDEX]
+					if ($thisModName -eq $currentModuleName) { $path = $thisCmdName }
+					else { $path = "..","..",$thisNamespace,$thisModName,$thisCmdName -join "/" }
+					$item = Get-HtmlLink ("{0}.html" -f $path) $thisCmdName
 				}
-				if ($thisModName -eq $currentModuleName) { $path = $thisCmdName }
-				else { $path = "..","..",$thisNamespace,$thisModName,$thisCmdName -join "/" }
-				$item = Get-HtmlLink ("{0}.html" -f $path) $thisCmdName
+				else {
+					[void](Handle-MissingValue "Related link '$thisCmdName' not loaded")
+					$item = $thisCmdName
+				}
 			}
 		}
 		elseif ($_ -match "^\s*(about_[\w_]+)\s*$") { # topic format: "about_topic"
