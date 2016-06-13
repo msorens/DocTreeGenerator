@@ -199,6 +199,10 @@ If you use the canonical "PS>" prompt in your example, you do not need the leadi
 Directory name to store the generated HTML documentation set.
 If not supplied, the current directory is used.
 
+.PARAMETER SourceDir
+Directory name where the specified namespaces are rooted.
+Defaults to the user-specific PowerShell default module location if not specified.
+
 .PARAMETER Namespaces
 One or more names of top-level directories under your user-level
 module repository (...Documents\WindowsPowerShell\Modules) to document.
@@ -284,6 +288,7 @@ function Convert-HelpToHtmlTree
 	Param(
 		[parameter(Mandatory=$true)][String[]]$Namespaces,
 		[string]$TargetDir    = ".",
+		[string]$SourceDir    = "",
 		[string]$TemplateName = "",
 		[string]$DocTitle     = "",
 		[string]$Copyright    = "",
@@ -293,7 +298,13 @@ function Convert-HelpToHtmlTree
 
 	Init-Variables
 
+
+	if ($SourceDir) {
+		$moduleRoot = $SourceDir
+	}
 	Write-Host "Target dir: $TargetDir"
+	Write-Host "Source dir: $moduleRoot"
+
 	$namespaceSummary = @{}
 	$Namespaces |
 	# Convert wildcards (if any) in Namespaces parameter to instances
@@ -382,11 +393,9 @@ function Process-Module($namespace, $moduleName, $parentTitle)
 {
 	Write-Host "    Module: $moduleName"
 	$script:moduleCount++;
-	$qualifiedModName = (join-Path $namespace $moduleName)
-	if (! (Get-Module $moduleName -ListAvailable))
-	{ [void](Handle-MissingValue "No objects found") }
-	elseif (! (Import-MostModules $qualifiedModName))
-	{ [void](Handle-MissingValue "Cannot load $qualifiedModName module") }
+
+	if (! (Import-MostModules $namespace $moduleName))
+	{ [void](Handle-MissingValue "Cannot load $moduleName module") }
 	else {
 		if (!$parentTitle) { $parentTitle = "{0} Namespace" -f $namespace }
 		$moduleDocPath = Join-Path $TargetDir (Join-Path $namespace $moduleName)
@@ -404,17 +413,17 @@ function Process-Module($namespace, $moduleName, $parentTitle)
 		}
 
 		$help = @{}
-		Generate-FunctionPages $qualifiedModName $moduleName $moduleDocPath $parentTitle $help
-		Generate-ModulePage $qualifiedModName $moduleName $moduleDocPath $parentTitle $help
-		Remove-MostModules $qualifiedModName $moduleName
+		Generate-FunctionPages $moduleName $moduleDocPath $parentTitle $help
+		Generate-ModulePage $moduleName $moduleDocPath $parentTitle $help
+		Remove-MostModules $moduleName
 	}
 }
 
-function Generate-FunctionPages($qualifiedModName, $moduleName, $moduleDocPath, $parentTitle, $helpHash)
+function Generate-FunctionPages($moduleName, $moduleDocPath, $parentTitle, $helpHash)
 {
 	Get-Command -Module $moduleName |
 	? { $_.CommandType -in $CMDLET_TYPES } |
-	Filter-ThisModule $qualifiedModName $moduleName |
+	Filter-ThisModule $moduleName |
 	% { 
 		$function = $_.Name
 		Write-Host ("        {0}: {1}" -f $_.CommandType, $function)
@@ -453,11 +462,11 @@ function Generate-FunctionPages($qualifiedModName, $moduleName, $moduleDocPath, 
 	}
 }
 
-function Generate-ModulePage($qualifiedModName, $moduleName, $moduleDocPath, $parentTitle, $helpHash)
+function Generate-ModulePage($moduleName, $moduleDocPath, $parentTitle, $helpHash)
 {
 	$indexTableRows = 
 	Get-Command -Module $moduleName | 
-	Filter-ThisModule $qualifiedModName $moduleName |
+	Filter-ThisModule $moduleName |
 	sort -Property Name |
 	% {
 		if ($_.CommandType -in $CMDLET_TYPES) {
@@ -673,21 +682,23 @@ function Handle-MissingValue($message)
 }
 
 # Convert Import-Module into a functional object
-function Import-MostModules($qModuleName)
+function Import-MostModules($namespace, $moduleName)
 {
 	# Skip reloading this module--causes all functions to be lost!
-	if ($qModuleName -eq $thisModule) { return $true }
+	if ($moduleName -eq $thisModule) { return $true }
 
 	# Need to remove it first in case already loaded in the current shell.
 	# Otherwise, module properties in template could show two values!
-	Remove-Module $qModuleName -ErrorAction SilentlyContinue
-	Import-Module $qModuleName -force
+	Remove-Module $moduleName -ErrorAction SilentlyContinue
+
+	$modulePath = $moduleRoot, $namespace, $moduleName, "$moduleName.psd1" -join '\'
+	Import-Module $modulePath -force
 	return ! (!$?)
 }
 
-function Remove-MostModules($qModuleName, $moduleName)
+function Remove-MostModules($moduleName)
 {
-	if ($qModuleName -ne $thisModule) {
+	if ($moduleName -ne $thisModule) {
 		# Hmmm... With -WhatIf, Remove-Module complains about no modules removed
 		# when in fact it does properly remove the module!
 		# This suppresses the false-error from displaying.
@@ -697,14 +708,14 @@ function Remove-MostModules($qModuleName, $moduleName)
 	}
 }
 
-filter Filter-ThisModule($qModuleName, $moduleName)
+filter Filter-ThisModule($moduleName)
 {
 	# Since we are executing in THIS module, its private functions are visible
 	# by (Get-Command -Module...) so must be filtered down to the list of
 	# actually exported functions.
 	# (Calling code needs to use Get-Command because it needs to examine
 	# types as well.)
-	if ($qModuleName -eq $thisModule)
+	if ($moduleName -eq $thisModule)
 	{
 		$realList = (Get-Module $moduleName).ExportedCommands.Keys
 		if ( $realList -contains $_.Name ) { $_  }

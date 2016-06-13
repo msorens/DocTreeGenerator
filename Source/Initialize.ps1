@@ -29,7 +29,7 @@ function Init-Variables()
 	$script:moduleRoot = Get-UserPsModulePath
 
 	# Get the name of *this* module because it requires special handling.
-	if ($script:MyInvocation.MyCommand.Path -match "Modules\\(.*)\\\w*.psm1")
+	if ($script:MyInvocation.MyCommand.Path -match "\\([^\\]*)\\\w*.psm1")
 	{ $script:thisModule = $Matches[1] }
 	else { $script:thisModule = "" }
 
