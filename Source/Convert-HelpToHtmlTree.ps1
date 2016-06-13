@@ -318,19 +318,23 @@ function Convert-HelpToHtmlTree
 		$namespaceSummary[$namespace] = $moduleSummary
 		Add-ItemToContentsList $namespace "namespace" -itemUrl "index.html"
 	}
-
-	# Do this last; uses data collected from above.
-	$title = ""
-	if ($DocTitle) { $title = $DocTitle }
-	else { $title = "PowerShell API" }
-	if ($Namespaces.Count -eq 1) { $title = "{0} {1}" -f $Namespaces[0],$title }
-	Generate-HomePage $moduleRoot $title
-	Generate-ContentsPage $title
-	if ($noModulesFlagged) {
-		write-warning "Note that 'No modules found' typically indicates your"
-		write-warning "module directories are not within a namespace directory." }
-	"Done: {0} namespace(s), {1} module(s), {2} function(s), {3} file(s) processed." `
-		-f $namespaceCount,$moduleCount, $functionCount, $fileCount
+	if ($namespaceSummary.Count -eq 0) {
+		[void](Handle-MissingValue "No namespaces found");
+	}
+	else {
+		# Do this last; uses data collected from above.
+		$title = ""
+		if ($DocTitle) { $title = $DocTitle }
+		else { $title = "PowerShell API" }
+		if ($Namespaces.Count -eq 1) { $title = "{0} {1}" -f $Namespaces[0],$title }
+		Generate-HomePage $moduleRoot $title
+		Generate-ContentsPage $title
+		if ($noModulesFlagged) {
+			write-warning "Note that 'No modules found' typically indicates your"
+			write-warning "module directories are not within a namespace directory." }
+			"Done: {0} namespace(s), {1} module(s), {2} function(s), {3} file(s) processed." `
+			-f $namespaceCount,$moduleCount, $functionCount, $fileCount
+	}
 
 	if ($EnableExit) { Exit-WithCode -FailedCount $failedCount }
 }
