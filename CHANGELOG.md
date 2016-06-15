@@ -7,12 +7,25 @@ IMPROVEMENTS:
 BUG FIXES:
 
 
+## 2.0.06 (June 14, 2016)
+
+IMPROVEMENTS:
+  - Report more specific errors when no namespaces are found.
+  - Added -SourceDir parameter to allow  modules located in an arbitrary
+    directory. [#4](https://github.com/msorens/DocTreeGenerator/issues/4)
+
+
+BUG FIXES:
+  - If custom function listed as a related link was not found, it previously
+    generated an invalid URL on the hyperlink for it.
+	Changed to just emit the custom function name as plain text.
+
+
 ## 2.0.05 (April 19, 2016)
 
 IMPROVEMENTS:
   - Report more specific errors when problems with an overview file are encountered.
   - Added template and script for regenerating self-documentation (i.e. DocTreeGenerator itself).
-
 
 BUG FIXES:
   - Overview files were not returning valid results with a DocType definition (DTD) present. [#3](https://github.com/msorens/DocTreeGenerator/issues/3)
