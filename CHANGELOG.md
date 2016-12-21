@@ -3,6 +3,8 @@
 FEATURES:
 
 IMPROVEMENTS:
+  - Added Publish-ModuleDocumentationTree for more easily automating
+    documentation generation for several modules under a single namespace.
 
 BUG FIXES:
 

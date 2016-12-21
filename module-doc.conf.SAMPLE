@@ -1,0 +1,44 @@
+# Configuration file for Publish-ModuleDocumentationTree
+
+@{
+
+# Location of your source control repository containing your modules
+ProjectRoot = 'C:\path\to\your\project\'
+
+# List each module here with Name and Directory (relative to project root)
+Modules = @(
+	@{
+   		Name = 'Acme.Admin.PowerShell'
+		SourcePath = "projects\Glom.Server\src"
+		BinPath = "projects\Glom.Server\output\Debug"
+	},
+	@{
+   		Name = 'Acme.ResponseManager.Admin.PowerShell'
+		SourcePath = "projects\Glom.Tools\src"
+		BinPath = "projects\Glom.Tools\output\Debug"
+	}
+)
+
+# The parent directory name of all your modules
+Namespace = 'Acme'
+
+# Title on each web page
+# (note that the Namespace is prefixed to this title)
+DocTitle = 'PowerShell API'
+
+# Output directory (relative to your current directory)
+DocDirectory = '.\AcmeDocs'
+
+# HTML template file for DocTreeGenerator (relative to project root)
+TemplatePath = 'projects\Common\doc\psdoc_template.html'
+
+# Location of namespace_overview.html file (relative to project root)
+NamespaceOverviewDirectory = 'projects\Common\doc'
+
+# Information added to web pages
+CopyrightYear = '2016'
+
+# Information added to web pages
+RevisionDate = '2016.12.05'
+
+}

@@ -269,6 +269,8 @@ Scans all namespace-aware directories under ...\WindowsPowerShell\Modules
 and generates documentation for them in a local subdirectory called API.
 
 .LINK
+Publish-ModuleDocumentationTree
+.LINK
 about_Comment_Based_Help
 .LINK
 [About Help Topics] (http://technet.microsoft.com/en-us/library/dd347616.aspx)
@@ -278,6 +280,8 @@ about_Comment_Based_Help
 [How To Document Your PowerShell Library with Convert-HelpToHtmlTree](https://www.simple-talk.com/sysadmin/powershell/how-to-document-your-powershell-library/)
 .LINK
 [Documenting Your PowerShell Binary Cmdlets](https://www.simple-talk.com/dotnet/software-tools/documenting-your-powershell-binary-cmdlets/)
+.LINK
+[Unified Approach to Generating Documentation for PowerShell Cmdlets](https://www.simple-talk.com/sysadmin/powershell/unified-approach-to-generating-documentation-for-powershell-cmdlets/)
 
 #>
 

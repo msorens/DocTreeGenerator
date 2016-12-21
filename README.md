@@ -37,7 +37,8 @@ Installation
 
 Usage
 ----------
-See extensive help available from the single cmdlet in the module itself: `Get-Help Convert-HelpToHtmlTree`
+See extensive help available from `Get-Help Convert-HelpToHtmlTree`
+and `Get-Help Publish-ModuleDocumentationTree`.
 Also see some practical examples and detailed notes on how to use it
 on Simple-Talk.com: [How To Document Your PowerShell Library](https://www.simple-talk.com/sysadmin/powershell/how-to-document-your-powershell-library/)
 
