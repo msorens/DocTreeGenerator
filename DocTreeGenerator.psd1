@@ -79,7 +79,15 @@ NestedModules = @()
 ModuleList = @()
 
 # List of all files packaged with this module
-FileList = @()
+FileList = @(
+	'.\DocTreeGenerator.psm1',
+	'.\Source\Convert-HelpToHtmlTree.ps1'
+	'.\Source\Copy-Module.ps1'
+	'.\Source\HtmlSupport.ps1'
+	'.\Source\IndentSupport.ps1'
+	'.\Source\Initialize.ps1'
+	'.\Source\Publish-ModuleDocumentationTree.ps1'
+)
 
 # Private data to pass to the module specified in ModuleToProcess
 PrivateData = ''

@@ -35,7 +35,7 @@
  <div class='PowerShellDoc'>
 <h2>SYNTAX</h2>
 <div>
-<b>Convert-HelpToHtmlTree</b> [-Namespaces] <i>&lt;String[]&gt;</i> [[-TargetDir] <i>&lt;String&gt;</i>] [[-TemplateName] <i>&lt;String&gt;</i>] [[-DocTitle] <i>&lt;String&gt;</i>] [[-Copyright] <i>&lt;String&gt;</i>] [[-RevisionDate] <i>&lt;String&gt;</i>] [-EnableExit] [-WhatIf] [-Confirm] [<i>&lt;CommonParameters&gt;</i>]
+<b>Convert-HelpToHtmlTree</b> [-Namespaces] <i>&lt;String[]&gt;</i> [[-TargetDir] <i>&lt;String&gt;</i>] [[-SourceDir] <i>&lt;String&gt;</i>] [[-TemplateName] <i>&lt;String&gt;</i>] [[-DocTitle] <i>&lt;String&gt;</i>] [[-Copyright] <i>&lt;String&gt;</i>] [[-RevisionDate] <i>&lt;String&gt;</i>] [-EnableExit] [-WhatIf] [-Confirm] [<i>&lt;CommonParameters&gt;</i>]
 <br/>
 <br/></div>
 </div>
@@ -295,6 +295,18 @@ If not supplied, the current directory is used.
 <pre>        Accept pipeline input?       false</pre>
 <pre>        Accept wildcard characters?  false</pre>
 <br/>
+    -<strong>SourceDir &lt;String&gt;</strong>
+<br/>
+      Directory name where the specified namespaces are rooted.
+Defaults to the user-specific PowerShell default module location if not specified.
+<br/>
+<br/>
+<pre>        Required?                    false</pre>
+<pre>        Position?                    3</pre>
+<pre>        Default value                </pre>
+<pre>        Accept pipeline input?       false</pre>
+<pre>        Accept wildcard characters?  false</pre>
+<br/>
     -<strong>TemplateName &lt;String&gt;</strong>
 <br/>
       Name of your custom template file to use to generate each HTML file.
@@ -303,7 +315,7 @@ it is stored in the same directory as this module file.
 <br/>
 <br/>
 <pre>        Required?                    false</pre>
-<pre>        Position?                    3</pre>
+<pre>        Position?                    4</pre>
 <pre>        Default value                </pre>
 <pre>        Accept pipeline input?       false</pre>
 <pre>        Accept wildcard characters?  false</pre>
@@ -323,7 +335,7 @@ in a smaller font to provide context.
 <br/>
 <br/>
 <pre>        Required?                    false</pre>
-<pre>        Position?                    4</pre>
+<pre>        Position?                    5</pre>
 <pre>        Default value                </pre>
 <pre>        Accept pipeline input?       false</pre>
 <pre>        Accept wildcard characters?  false</pre>
@@ -337,7 +349,7 @@ to remove the rest of the copyright phrase.
 <br/>
 <br/>
 <pre>        Required?                    false</pre>
-<pre>        Position?                    5</pre>
+<pre>        Position?                    6</pre>
 <pre>        Default value                </pre>
 <pre>        Accept pipeline input?       false</pre>
 <pre>        Accept wildcard characters?  false</pre>
@@ -351,7 +363,7 @@ to remove the rest of the revision date phrase.
 <br/>
 <br/>
 <pre>        Required?                    false</pre>
-<pre>        Position?                    6</pre>
+<pre>        Position?                    7</pre>
 <pre>        Default value                </pre>
 <pre>        Accept pipeline input?       false</pre>
 <pre>        Accept wildcard characters?  false</pre>
@@ -451,11 +463,13 @@ Thus, typically you do *not* want to use this switch interactively.
  <div class='PowerShellDoc'>
 <h2>RELATED LINKS</h2>
 <ul>
+<li><a href='Publish-ModuleDocumentationTree.html'>Publish-ModuleDocumentationTree</a></li>
 <li><a href='https://technet.microsoft.com/en-us/library/dd819489.aspx'>about_Comment_Based_Help</a></li>
 <li><a href='http://technet.microsoft.com/en-us/library/dd347616.aspx'>About Help Topics</a></li>
 <li><a href='http://technet.microsoft.com/en-us/library/dd347701.aspx'>Cmdlet Help Topics</a></li>
 <li><a href='https://www.simple-talk.com/sysadmin/powershell/how-to-document-your-powershell-library/'>How To Document Your PowerShell Library with Convert-HelpToHtmlTree</a></li>
 <li><a href='https://www.simple-talk.com/dotnet/software-tools/documenting-your-powershell-binary-cmdlets/'>Documenting Your PowerShell Binary Cmdlets</a></li>
+<li><a href='https://www.simple-talk.com/sysadmin/powershell/unified-approach-to-generating-documentation-for-powershell-cmdlets/'>Unified Approach to Generating Documentation for PowerShell Cmdlets</a></li>
 </ul></div>
 
 

@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN""http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.w3.org/1999/xhtml   http://www.w3.org/2002/08/xhtml/xhtml1-transitional.xsd" xml:lang="en" lang="en">
+<head>
+	<title>Copy-Module</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="description" content="API documentation for DocTreeGenerator module">
+	<meta name="keywords" content="powershell,documentation,api,module">
+	<meta name="generator" content="DocTreeGenerator.psm1">
+	<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-type">
+	<meta content="text/css" http-equiv="Content-Style-Type">
+	<meta content="https://github.com/msorens/DocTreeGenerator" name="projectHome">
+	<meta content="Michael Sorens" name="author">
+	<meta name="copyright" content="(c) 2015 Michael Sorens">
+	<link href="http://cleancode.sourceforge.net/css/cleancode.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+<h1>Copy-Module</h1>
+
+
+
+<div class='PowerShellDoc'>
+<h2>NAME</h2>
+<div>
+    Copy-Module
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>SYNOPSIS</h2>
+<div>
+    Copies a PowerShell module to a different location on the file system.
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>SYNTAX</h2>
+<div>
+<b>Copy-Module</b> [-Name] <i>&lt;String&gt;</i> [[-Destination] <i>&lt;String&gt;</i>] [<i>&lt;CommonParameters&gt;</i>]
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>DESCRIPTION</h2>
+<div>
+    Copies a PowerShell module either to the standard system repository location
+    or copies it to a custom location.
+    Using the standard system repository (the default action)
+    makes cmdlets automatically available in a PowerShell session,
+    as well as making the cmdlets available for explicit import with just the name
+    of the module, e.g. "Import-Module Your.PowerShell.Module.
+<br/>
+<br/>
+    * The module manifest (.psd1) specifies which files will be installed.
+<br/>
+    * All files required by the module must sit in the same directory as the module manifest and DLL (if a compiled module).
+<br/>
+    * The module directory must be the same name as the module manifest base name.
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>PARAMETERS</h2>
+<div>
+<br/>
+    -<strong>Name &lt;String&gt;</strong>
+<br/>
+      Name of the PowerShell module.
+<br/>
+<br/>
+<pre>        Required?                    true</pre>
+<pre>        Position?                    1</pre>
+<pre>        Default value                </pre>
+<pre>        Accept pipeline input?       false</pre>
+<pre>        Accept wildcard characters?  false</pre>
+<br/>
+    -<strong>Destination &lt;String&gt;</strong>
+<br/>
+      Specifies the path to the new location if supplied. Otherwise,
+uses the standard system location.
+<br/>
+<br/>
+<pre>        Required?                    false</pre>
+<pre>        Position?                    2</pre>
+<pre>        Default value                </pre>
+<pre>        Accept pipeline input?       false</pre>
+<pre>        Accept wildcard characters?  false</pre>
+<br/>
+    &lt;CommonParameters&gt;
+<pre>        This cmdlet supports the common parameters: Verbose, Debug,</pre>
+<pre>        ErrorAction, ErrorVariable, WarningAction, WarningVariable,</pre>
+<pre>        OutBuffer, PipelineVariable, and OutVariable. For more information, see </pre>
+<pre>        about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216). </pre>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>INPUTS</h2>
+<div>
+    None.
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>OUTPUTS</h2>
+<div>
+    None.
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>EXAMPLES</h2>
+<div>
+<br/>
+<strong>    -------------------------- EXAMPLE 1 --------------------------</strong>
+<br/>
+<br/>
+    <span class='pscmd'>PS&gt;Copy-Module Acme.Admin.PowerShell</span>
+<br/>
+<br/>
+    Copies module to C:\Windows\System32\WindowsPowerShell\v1.0\Modules.
+<br/>
+<br/>
+<strong>    -------------------------- EXAMPLE 2 --------------------------</strong>
+<br/>
+<br/>
+    <span class='pscmd'>PS&gt;Copy-Module -Name Acme.Admin.PowerShell -Dest C:\temp</span>
+<br/>
+<br/>
+    Copies module to specified directory.
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>RELATED LINKS</h2>
+<p>-none-</p>
+</div>
+
+
+
+
+
+<p><i>
+This documentation set was created with 
+<a target="_blank" href="https://github.com/msorens/DocTreeGenerator">DocTreeGenerator</a>.
+</i></p>
+
+
+</body>
+</html>
+

@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN""http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.w3.org/1999/xhtml   http://www.w3.org/2002/08/xhtml/xhtml1-transitional.xsd" xml:lang="en" lang="en">
+<head>
+	<title>Publish-ModuleDocumentationTree</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="description" content="API documentation for DocTreeGenerator module">
+	<meta name="keywords" content="powershell,documentation,api,module">
+	<meta name="generator" content="DocTreeGenerator.psm1">
+	<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-type">
+	<meta content="text/css" http-equiv="Content-Style-Type">
+	<meta content="https://github.com/msorens/DocTreeGenerator" name="projectHome">
+	<meta content="Michael Sorens" name="author">
+	<meta name="copyright" content="(c) 2015 Michael Sorens">
+	<link href="http://cleancode.sourceforge.net/css/cleancode.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+<h1>Publish-ModuleDocumentationTree</h1>
+
+
+
+<div class='PowerShellDoc'>
+<h2>NAME</h2>
+<div>
+    Publish-ModuleDocumentationTree
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>SYNOPSIS</h2>
+<div>
+    Generates HTML documentation for PowerShell modules using the DocTreeGenerator engine.
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>SYNTAX</h2>
+<div>
+<b>Publish-ModuleDocumentationTree</b> [[-ConfigFilePath] <i>&lt;String&gt;</i>] [<i>&lt;CommonParameters&gt;</i>]
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>DESCRIPTION</h2>
+<div>
+    This is a wrapper around Convert-HelpToHtmlTree that provides more flexibility.
+    Convert-HelpToHtmlTree requires all the modules you are documenting to be siblings
+    in a file tree, but Publish-ModuleDocumentationTree lets you specify modules
+    from different areas of your source tree.
+    The modules are copied (according to their manifests) to a temporary directory
+    in the appropriate structure, then Convert-HelpToHtmlTree is invoked.
+    Specify the modules and other parameters in a configuration file,
+    which you pass to this cmdlet.
+<br/>
+<br/>
+    A sample configuration file (module-doc.conf.SAMPLE) comes with this module.
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>PARAMETERS</h2>
+<div>
+<br/>
+    -<strong>ConfigFilePath &lt;String&gt;</strong>
+<br/>
+      Full path of configuration file; if not supplied, uses module-doc.conf
+in the current directory.
+<br/>
+<br/>
+<pre>        Required?                    false</pre>
+<pre>        Position?                    1</pre>
+<pre>        Default value                </pre>
+<pre>        Accept pipeline input?       false</pre>
+<pre>        Accept wildcard characters?  false</pre>
+<br/>
+    &lt;CommonParameters&gt;
+<pre>        This cmdlet supports the common parameters: Verbose, Debug,</pre>
+<pre>        ErrorAction, ErrorVariable, WarningAction, WarningVariable,</pre>
+<pre>        OutBuffer, PipelineVariable, and OutVariable. For more information, see </pre>
+<pre>        about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216). </pre>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>INPUTS</h2>
+<div>
+    None. You cannot pipe objects to Publish-ModuleDocumentationTree.
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>OUTPUTS</h2>
+<div>
+    None. Publish-ModuleDocumentationTree does not generate any output.
+<br/>
+<br/></div>
+</div>
+ <div class='PowerShellDoc'>
+<h2>RELATED LINKS</h2>
+<ul>
+<li><a href='Convert-HelpToHtmlTree.html'>Convert-HelpToHtmlTree</a></li>
+<li><a href='https://technet.microsoft.com/en-us/library/dd819489.aspx'>about_Comment_Based_Help</a></li>
+<li><a href='http://technet.microsoft.com/en-us/library/dd347616.aspx'>About Help Topics</a></li>
+<li><a href='http://technet.microsoft.com/en-us/library/dd347701.aspx'>Cmdlet Help Topics</a></li>
+<li><a href='https://www.simple-talk.com/sysadmin/powershell/how-to-document-your-powershell-library/'>How To Document Your PowerShell Library with Convert-HelpToHtmlTree</a></li>
+<li><a href='https://www.simple-talk.com/dotnet/software-tools/documenting-your-powershell-binary-cmdlets/'>Documenting Your PowerShell Binary Cmdlets</a></li>
+<li><a href='https://www.simple-talk.com/sysadmin/powershell/unified-approach-to-generating-documentation-for-powershell-cmdlets/'>Unified Approach to Generating Documentation for PowerShell Cmdlets</a></li>
+</ul></div>
+
+
+
+
+
+<p><i>
+This documentation set was created with 
+<a target="_blank" href="https://github.com/msorens/DocTreeGenerator">DocTreeGenerator</a>.
+</i></p>
+
+
+</body>
+</html>
+
