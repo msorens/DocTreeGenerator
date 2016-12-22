@@ -4,7 +4,7 @@ $moduleName = 'DocTreeGenerator'
 $projectDir = "$Home\Documents\GitHub\$moduleName"
 $configName = Join-Path $projectDir 'DocTreeGenerator-module-doc.conf'
 $configData = Get-Content $configName | Out-String | Invoke-Expression
-$docDir = $configData.DocDirectory
+$docDir = $configData.DocPath
 $namespace = $configData.Namespace
 
 Publish-ModuleDocumentationTree $configName

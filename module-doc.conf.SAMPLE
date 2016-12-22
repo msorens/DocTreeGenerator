@@ -5,7 +5,7 @@
 # Location of your source control repository containing your modules
 ProjectRoot = 'C:\path\to\your\project\'
 
-# List each module here with Name and Directory (relative to project root)
+# List each module here with name and paths (relative to project root)
 Modules = @(
 	@{
    		Name = 'Acme.Admin.PowerShell'
@@ -27,13 +27,13 @@ Namespace = 'Acme'
 DocTitle = 'PowerShell API'
 
 # Output directory (relative to your current directory)
-DocDirectory = '.\AcmeDocs'
+DocPath = '.\AcmeDocs'
 
 # HTML template file for DocTreeGenerator (relative to project root)
 TemplatePath = 'projects\Common\doc\psdoc_template.html'
 
 # Location of namespace_overview.html file (relative to project root)
-NamespaceOverviewDirectory = 'projects\Common\doc'
+NamespaceOverviewPath = 'projects\Common\doc'
 
 # Information added to web pages
 CopyrightYear = '2016'

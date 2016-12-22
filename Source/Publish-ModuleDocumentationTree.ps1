@@ -88,9 +88,9 @@ function PrepModules()
 	}
 
 	New-Item -Path $tmpInstallDir -ItemType directory | Out-Null
-	if ($config.ContainsKey('NamespaceOverviewDirectory') -and
-			$config.NamespaceOverviewDirectory.Trim()) {
-		$namespacePath = Join-Path $config.ProjectRoot $config.NamespaceOverviewDirectory
+	if ($config.ContainsKey('NamespaceOverviewPath') -and
+			$config.NamespaceOverviewPath.Trim()) {
+		$namespacePath = Join-Path $config.ProjectRoot $config.NamespaceOverviewPath
 		Copy-Item "$namespacePath\namespace_overview.html" $tmpInstallDir
 	}
 
@@ -107,23 +107,18 @@ function PrepModules()
 function GenerateDocs()
 {
 	WriteSection 'Generating docs...'
-	$docDir = $config.DocDirectory
+	$docDir = $config.DocPath
 	if (Test-Path "$docDir-bak") {
 		Remove-Item "$docDir-bak" -Force -Recurse
 	}
 	if (Test-Path $docDir) {
 		Rename-Item $docDir "$docDir-bak"
 	}
-	if (Test-Path $docDir) {
-		Write-Warning 'Modules may be in use; try a fresh PowerShell session.'
-		$script:proceed = $false
-		return
-	}
 
 	$params = @{
 		Namespaces   = $config.Namespace
 		SourceDir    = $root
-		TargetDir    = $config.DocDirectory
+		TargetDir    = $config.DocPath
 		Copyright    = $config.CopyrightYear
 		RevisionDate = $config.RevisionDate
 		Template     = Join-Path $config.ProjectRoot $config.TemplatePath

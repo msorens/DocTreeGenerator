@@ -12,13 +12,13 @@ InModuleScope DocTreeGenerator {
 		Mock Copy-Module
 		Mock Set-Location
 		Mock Test-Path -MockWith { $true } `
-			-ParameterFilter { $Path -match [regex]::Escape($config.DocDirectory) }
+			-ParameterFilter { $Path -match [regex]::Escape($config.DocPath) }
 		Mock Test-Path -MockWith { $false } `
 			-ParameterFilter { $Path -match [regex]::Escape($env:temp) }
 		Mock Rename-Item -MockWith { $script:calls += 'rename to backup' } `
-			-ParameterFilter { $NewName -eq "$($config.DocDirectory)-bak" }
+			-ParameterFilter { $NewName -eq "$($config.DocPath)-bak" }
 		Mock Remove-Item -MockWith { $script:calls += 'remove backup' } `
-			-ParameterFilter { $Path -eq "$($config.DocDirectory)-bak" }
+			-ParameterFilter { $Path -eq "$($config.DocPath)-bak" }
 		Mock Convert-HelpToHtmlTree  -MockWith { $script:calls += 'regenerate' }
 		Mock GetConfigData { return $configData }
 
@@ -27,8 +27,8 @@ InModuleScope DocTreeGenerator {
 			$configData = @{
 				Namespace = 'myNamespace'
 				ProjectRoot = 'my\Project\Root'
-				NamespaceOverviewDirectory = 'ns\path\here'
-				DocDirectory = 'doc\path\here'
+				NamespaceOverviewPath = 'ns\path\here'
+				DocPath = 'doc\path\here'
 				DocTitle = 'My API'
 				TemplatePath = 'template\path\here'
 				CopyrightYear = '2016'
@@ -62,12 +62,12 @@ InModuleScope DocTreeGenerator {
 			Publish-ModuleDocumentationTree "any"
 			Assert-MockCalled Copy-Item -Exactly 1 -Scope It `
 			-ParameterFilter { $Destination -match $configData.Namespace -and
-				$Path -match "$([regex]::Escape($configData.NamespaceOverviewDirectory)).*namespace_overview"
+				$Path -match "$([regex]::Escape($configData.NamespaceOverviewPath)).*namespace_overview"
 			}
 		}
 
-		It 'does not copy namespace overview if NamespaceOverviewDirectory is not supplied' {
-			$configData.Remove('NamespaceOverviewDirectory')
+		It 'does not copy namespace overview if NamespaceOverviewPath is not supplied' {
+			$configData.Remove('NamespaceOverviewPath')
 
 			Publish-ModuleDocumentationTree
 
@@ -75,8 +75,8 @@ InModuleScope DocTreeGenerator {
 			-ParameterFilter { $Path -match "namespace_overview" }
 		}
 
-		It 'does not copy namespace overview if NamespaceOverviewDirectory is whitespace' {
-			$configData.NamespaceOverviewDirectory = ' '
+		It 'does not copy namespace overview if NamespaceOverviewPath is whitespace' {
+			$configData.NamespaceOverviewPath = ' '
 
 			Publish-ModuleDocumentationTree
 
@@ -129,7 +129,7 @@ InModuleScope DocTreeGenerator {
 			Publish-ModuleDocumentationTree "any"
 			Assert-MockCalled Convert-HelpToHtmlTree -Exactly 1 -Scope It `
 			-ParameterFilter { $Namespaces -eq $configData.Namespace -and
-				$TargetDir -eq $configData.DocDirectory -and
+				$TargetDir -eq $configData.DocPath -and
 				$Copyright -eq $configData.CopyrightYear -and
 				$RevisionDate -eq $configData.RevisionDate -and
 				$DocTitle -eq $configData.DocTitle -and
