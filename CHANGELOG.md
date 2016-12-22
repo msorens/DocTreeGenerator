@@ -1,12 +1,11 @@
 ## Next Release
 
-FEATURES:
+## 2.0.07 (December 22, 2016)
 
 IMPROVEMENTS:
   - Added Publish-ModuleDocumentationTree for more easily automating
     documentation generation for several modules under a single namespace.
-
-BUG FIXES:
+  - Added Copy-Module cmdlet to support above.
 
 
 ## 2.0.06 (June 14, 2016)
