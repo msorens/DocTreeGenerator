@@ -114,6 +114,11 @@ function GenerateDocs()
 	if (Test-Path $docDir) {
 		Rename-Item $docDir "$docDir-bak"
 	}
+	if (Test-Path $docDir) {
+		Write-Warning 'Modules may be in use; try a fresh PowerShell session.'
+		$script:proceed = $false
+		return
+	}
 
 	$params = @{
 		Namespaces   = $config.Namespace
