@@ -22,31 +22,30 @@ InModuleScope DocTreeGenerator {
 		Mock Convert-HelpToHtmlTree  -MockWith { $script:calls += 'regenerate' }
 		Mock GetConfigData { return $configData }
 
-		$configData = @{
-			Namespace = 'myNamespace'
-			ProjectRoot = 'my\Project\Root'
-			NamespaceOverviewDirectory = 'ns\path\here'
-			DocDirectory = 'doc\path\here'
-			DocTitle = 'My API'
-			TemplatePath = 'template\path\here'
-			CopyrightYear = '2016'
-			RevisionDate = '2016.12.05'
-			Modules = @(
-				@{
-			   		Name = 'name1'
-					SourcePath = 'some\srcpath1'
-					BinPath = 'some\binpath1'
-				},
-				@{
-			   		Name = 'name2'
-					SourcePath = 'some\srcpath2'
-					BinPath = 'some\binpath2'
-				}
-			)
-		}
-
 		BeforeEach {
 			$script:calls = @()
+			$configData = @{
+				Namespace = 'myNamespace'
+				ProjectRoot = 'my\Project\Root'
+				NamespaceOverviewDirectory = 'ns\path\here'
+				DocDirectory = 'doc\path\here'
+				DocTitle = 'My API'
+				TemplatePath = 'template\path\here'
+				CopyrightYear = '2016'
+				RevisionDate = '2016.12.05'
+				Modules = @(
+					@{
+				   		Name = 'name1'
+						SourcePath = 'some\srcpath1'
+						BinPath = 'some\binpath1'
+					},
+					@{
+				   		Name = 'name2'
+						SourcePath = 'some\srcpath2'
+						BinPath = 'some\binpath2'
+					}
+				)
+			}
 		}
 
 		It 'uses the supplied config file name' {
@@ -62,7 +61,27 @@ InModuleScope DocTreeGenerator {
 		It 'copies a single namespace overview for the entire project' {
 			Publish-ModuleDocumentationTree "any"
 			Assert-MockCalled Copy-Item -Exactly 1 -Scope It `
-			-ParameterFilter { $Path -match "$([regex]::Escape($configData.NamespaceOverviewDirectory)).*namespace_overview" -and $Destination -match $configData.Namespace }
+			-ParameterFilter { $Destination -match $configData.Namespace -and
+				$Path -match "$([regex]::Escape($configData.NamespaceOverviewDirectory)).*namespace_overview"
+			}
+		}
+
+		It 'does not copy namespace overview if NamespaceOverviewDirectory is not supplied' {
+			$configData.Remove('NamespaceOverviewDirectory')
+
+			Publish-ModuleDocumentationTree
+
+			Assert-MockCalled Copy-Item -Exactly 0 -Scope It `
+			-ParameterFilter { $Path -match "namespace_overview" }
+		}
+
+		It 'does not copy namespace overview if NamespaceOverviewDirectory is whitespace' {
+			$configData.NamespaceOverviewDirectory = ' '
+
+			Publish-ModuleDocumentationTree
+
+			Assert-MockCalled Copy-Item -Exactly 0 -Scope It `
+			-ParameterFilter { $Path -match "namespace_overview" }
 		}
 
 		It 'copies each module in the config file' {
@@ -78,7 +97,8 @@ InModuleScope DocTreeGenerator {
 			Publish-ModuleDocumentationTree "any"
 			$configData.Modules | ForEach-Object {
 				Assert-MockCalled Copy-Item -Exactly 1 -Scope It `
-				-ParameterFilter { $Path -match "$($_.Name).*module_overview" -and $Destination -match $_.Name }
+				-ParameterFilter { $Path -match "$($_.Name).*module_overview" -and
+					$Destination -match $_.Name }
 			}
 		}
 
