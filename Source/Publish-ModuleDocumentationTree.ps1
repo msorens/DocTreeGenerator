@@ -15,6 +15,8 @@ in the appropriate structure, then Convert-HelpToHtmlTree is invoked.
 Specify the modules and other parameters in a configuration file,
 which you pass to this cmdlet.
 
+A sample configuration file (module-doc.conf.SAMPLE) comes with this module.
+
 .PARAMETER ConfigFilePath
 Full path of configuration file; if not supplied, uses module-doc.conf
 in the current directory.
@@ -86,8 +88,11 @@ function PrepModules()
 	}
 
 	New-Item -Path $tmpInstallDir -ItemType directory | Out-Null
-	$namespacePath = Join-Path $config.ProjectRoot $config.NamespaceOverviewDirectory
-	Copy-Item "$namespacePath\namespace_overview.html" $tmpInstallDir
+	if ($config.ContainsKey('NamespaceOverviewDirectory') -and
+			$config.NamespaceOverviewDirectory.Trim()) {
+		$namespacePath = Join-Path $config.ProjectRoot $config.NamespaceOverviewDirectory
+		Copy-Item "$namespacePath\namespace_overview.html" $tmpInstallDir
+	}
 
 	$config.Modules | ForEach-Object {
 		Write-Output ('    ' + $_.Name)

@@ -9,13 +9,13 @@ ProjectRoot = 'C:\path\to\your\project\'
 Modules = @(
 	@{
    		Name = 'Acme.Admin.PowerShell'
-		SourcePath = "projects\Glom.Server\src"
-		BinPath = "projects\Glom.Server\output\Debug"
+		SourcePath = 'projects\Glom.Server\src'
+		BinPath = 'projects\Glom.Server\output\Debug'
 	},
 	@{
-   		Name = 'Acme.ResponseManager.Admin.PowerShell'
-		SourcePath = "projects\Glom.Tools\src"
-		BinPath = "projects\Glom.Tools\output\Debug"
+   		Name = 'Acme.Glom.Admin.PowerShell'
+		SourcePath = 'projects\Glom.Tools\src'
+		BinPath = 'projects\Glom.Tools\output\Debug'
 	}
 )
 

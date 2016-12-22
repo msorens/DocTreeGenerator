@@ -14,8 +14,7 @@ as well as making the cmdlets available for explicit import with just the name
 of the module, e.g. "Import-Module Your.PowerShell.Module.
 
 * The module manifest (.psd1) specifies which files will be installed.
-* All files required by the module must sit in the same directory
-  as the module manifest and DLL (if a compiled module).
+* All files required by the module must sit in the same directory as the module manifest and DLL (if a compiled module).
 * The module directory must be the same name as the module manifest base name.
 
 .PARAMETER Name
@@ -32,12 +31,12 @@ None.
 None.
 
 .EXAMPLE
-PS> Copy-Module NextIT.AgentAdmin.PowerShell
-Installs Alme core module
+PS> Copy-Module Acme.Admin.PowerShell
+Copies module to C:\Windows\System32\WindowsPowerShell\v1.0\Modules.
 
 .EXAMPLE
-PS> Copy-Module -Name NextIT.ResponseManagerAdmin.PowerShell
-Installs Alme Response Manager module
+PS> Copy-Module -Name Acme.Admin.PowerShell -Dest C:\temp
+Copies module to specified directory.
 
 #>
 
@@ -56,7 +55,7 @@ function Copy-Module
 	$psDir = if ($Destination) { $Destination } else { $stdDestination }
 
 	if (!(Test-Path $manifestFile)) {
-		Write-Warning "Please run from your Alme bin directory"
+		Write-Warning "Please run from your module's bin directory"
 		return
 	}
 	$manifest = Get-Content $manifestFile -Raw | Invoke-Expression
@@ -71,6 +70,8 @@ function Copy-Module
 	Copy-Item -path $manifestFile -dest $psDir -force -Verbose:$myVerbose
 
 	Write-Verbose 'Copying these files from manifest:'
+
+	# TODO: Add support for wildcards in manifest
 	$manifest.FileList | ForEach-Object {
 		$target = Join-Path $psDir $_
 		Write-Verbose $_
