@@ -99,7 +99,7 @@ function PrepModules()
 		cd (Join-Path $config.ProjectRoot $_.BinPath)
 		$targetPath = "$tmpInstallDir\$($_.Name)"
 		Copy-Module -Name $_.Name -Destination $targetPath
-		$moduleFile = '{0}\{1}\{2}\module_overview.html' -f $config.ProjectRoot, $_.SourcePath, $_.Name
+		$moduleFile = '{0}\{1}\module_overview.html' -f $config.ProjectRoot, $_.SourcePath
 		Copy-Item $moduleFile $targetPath
 	}
 }

@@ -97,7 +97,7 @@ InModuleScope DocTreeGenerator {
 			Publish-ModuleDocumentationTree "any"
 			$configData.Modules | ForEach-Object {
 				Assert-MockCalled Copy-Item -Exactly 1 -Scope It `
-				-ParameterFilter { $Path -match "$($_.Name).*module_overview" -and
+				-ParameterFilter { $Path -match "module_overview" -and
 					$Destination -match $_.Name }
 			}
 		}

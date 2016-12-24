@@ -8,13 +8,13 @@ ProjectRoot = 'C:\path\to\your\project\'
 # List each module here with name and paths (relative to project root)
 Modules = @(
 	@{
-   		Name = 'Acme.Admin.PowerShell'
-		SourcePath = 'projects\Glom.Server\src'
+		Name = 'Acme.Admin.PowerShell'
+		SourcePath = 'projects\Glom.Server\src\Acme.Admin.PowerShell'
 		BinPath = 'projects\Glom.Server\output\Debug'
 	},
 	@{
-   		Name = 'Acme.Glom.Admin.PowerShell'
-		SourcePath = 'projects\Glom.Tools\src'
+		Name = 'Acme.Glom.Admin.PowerShell'
+		SourcePath = 'projects\Glom.Tools\src\Acme.Glom.Admin.PowerShell'
 		BinPath = 'projects\Glom.Tools\output\Debug'
 	}
 )
