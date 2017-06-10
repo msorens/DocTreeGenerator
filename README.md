@@ -32,7 +32,7 @@ Download the full wallchart in a convenient PDF from my article on Simple-Talk.c
 
 Installation
 ----------
-1. Unzip DocTreeGenerator-master.zip into your PowerShell Modules directory ($env:UserProfile\Documents\WindowsPowerShell\Modules) and drop the "-master" suffix on the extracted folder.
+1. If you have Windows 10 or later (or have updated your PS 3 or 4 environment with PowerShellGet), you can just run `Install-Module -Name DocTreeGenerator` to install this module. Otherwise, you can download it from GitHub. After downloading, unzip DocTreeGenerator-master.zip into your PowerShell Modules directory ($env:UserProfile\Documents\WindowsPowerShell\Modules) and drop the "-master" suffix on the extracted folder.
 2. Import the module in your profile or import it manually: `Import-Module DocTreeGenerator`
 
 Usage

@@ -1,5 +1,13 @@
 ## Next Release
 
+## 2.0.08 (June 10, 2017)
+
+IMPROVEMENTS:
+  - Updated module manifest to latest PS5 template (from New-ModuleManifest)
+  - Centralized exported functions list to manifest for PSGallery compatibility
+  - Filled in manifest to support release to PSGallery
+
+
 ## 2.0.07 (December 22, 2016)
 
 IMPROVEMENTS:
