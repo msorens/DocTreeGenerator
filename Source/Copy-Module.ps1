@@ -82,4 +82,3 @@ function Copy-Module
 	Write-Verbose 'Done.'
 }
 
-Export-ModuleMember Copy-Module

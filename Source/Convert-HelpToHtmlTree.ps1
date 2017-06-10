@@ -862,5 +862,3 @@ function Exit-WithCode ($FailedCount) {
 	$host.SetShouldExit($FailedCount)
 }
 
-
-Export-ModuleMember Convert-HelpToHtmlTree

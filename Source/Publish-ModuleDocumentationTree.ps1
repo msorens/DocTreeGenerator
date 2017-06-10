@@ -128,4 +128,3 @@ function GenerateDocs()
 	Convert-HelpToHtmlTree @params
 }
 
-Export-ModuleMember Publish-ModuleDocumentationTree
