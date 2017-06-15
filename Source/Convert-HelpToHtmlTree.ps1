@@ -432,7 +432,7 @@ function Generate-FunctionPages($moduleName, $moduleDocPath, $parentTitle, $help
 		$function = $_.Name
 		Write-Host ("        {0}: {1}" -f $_.CommandType, $function)
 		$script:functionCount++;
-		$helpHash[$function] = Microsoft.PowerShell.Core\Get-Help $_ -Full -ErrorAction SilentlyContinue
+		$helpHash[$function] = Microsoft.PowerShell.Core\Get-Help $function -Full -ErrorAction SilentlyContinue
 		# convert to string array;
 		# must specify a wide width otherwise lines break at 80 characters!
 		$helpText = @($helpHash[$function] | Out-String -Stream -Width 16384)
