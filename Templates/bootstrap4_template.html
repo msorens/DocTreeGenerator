@@ -1,6 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 
+<!--
+   - bootstrap4_template.html - this template for DocTreeGenerator (DTG) is
+   - based on Bootstrap v4 (UI framework for JS, HTML and CSS).
+   -
+   - As is typical with Bootstrap-themed sites, this template provides a fairly
+   - clean and simple look for DTG-generated documentation that should be
+   - aesthetically appealing and easy to read.  The framework also gives you a
+   - "responsive" site that can scale up from mobile devices to desktop
+   - browsers.  You can get a sense of the style this will produce by looking
+   - at element and component examples of Bootstrap v4:
+   -     https://v4-alpha.getbootstrap.com/examples/
+   -
+   - The fundamental structure of this template is heavily based on the
+   - "Starter Template" found in the Bootstrap Quick Start (see below) with
+   - further additions based on examples and the documentation for other
+   - elements.
+   -
+   - A few key notes:
+   -   * The document type and HTML root tag as defined above is essential to
+   -     enable the HTML rendering mode by browsers as required by Bootstrap.
+   -   * The links for Bootstrap assets, such as JS and CSS, as well as any
+   -     dependencies is referenced from the official CDN sources.
+   -   * As suggested by the docs, the asset links are placed at the end of
+   -     body to prevent blocking of other resources from being loaded and
+   -     rendered and give better overall performance
+   -   * Bootstrap is designed as "mobile-first" framework, which means that
+   -     it optimizes for mobile devices first, then scales up, so the
+   -     "viewport" <meta> tag enables CSS media queries to help proper
+   -     rendering and behavior on devices of any size
+   -
+   - For more info about Bootstrap v4:
+   -   * Home Page - https://v4-alpha.getbootstrap.com/
+   -   * Quick Start - https://v4-alpha.getbootstrap.com/getting-started/introduction/
+  -->
+
 <head>
     <!-- Required meta tags for Bootstrap4 -->
     <meta charset="utf-8">
@@ -191,6 +226,15 @@
         &#x7b;module.Description} : {module.Description}            
     </pre>-->
 
+    <!--
+      These Bootstrap v4 asset links are taken right out of the Quick Start
+      guide and utilize the official CDN sources.  The links make use of
+      Subresource Integrity checking and anonymous crossorigin requests for
+      improved security.
+      
+      NOTE:  if you update to a newer version of these assets, be sure to
+      update the full asset links, including updated integrity hashes!
+      -->
 
     <!-- jQuery first, then Tether, then Bootstrap JS. -->
     <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"
@@ -204,6 +248,9 @@
             crossorigin="anonymous"></script>
 
     <script>
+        // We apply some final styling post-rendering in order to add
+        // some additional visual flair -- namely, color-alternating
+        // striping to tables, with support for mouse-over highlighting
         var t = $(".var-body table")
         if (t) {
             t.removeAttr("border")
