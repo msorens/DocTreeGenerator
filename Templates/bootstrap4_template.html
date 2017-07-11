@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+   - bootstrap4_template.html - this template for DocTreeGenerator (DTG) is
+   - based on Bootstrap v4 (UI framework for JS, HTML and CSS).
+   -
+   - As is typical with Bootstrap-themed sites, this template provides a fairly
+   - clean and simple look for DTG-generated documentation that should be
+   - aesthetically appealing and easy to read.  The framework also gives you a
+   - "responsive" site that can scale up from mobile devices to desktop
+   - browsers.  You can get a sense of the style this will produce by looking
+   - at element and component examples of Bootstrap v4:
+   -     https://v4-alpha.getbootstrap.com/examples/
+   -
+   - The fundamental structure of this template is heavily based on the
+   - "Starter Template" found in the Bootstrap Quick Start (see below) with
+   - further additions based on examples and the documentation for other
+   - elements.
+   -
+   - A few key notes:
+   -   * The document type and HTML root tag as defined above is essential to
+   -     enable the HTML rendering mode by browsers as required by Bootstrap.
+   -   * The links for Bootstrap assets, such as JS and CSS, as well as any
+   -     dependencies is referenced from the official CDN sources.
+   -   * As suggested by the docs, the asset links are placed at the end of
+   -     body to prevent blocking of other resources from being loaded and
+   -     rendered and give better overall performance
+   -   * Bootstrap is designed as "mobile-first" framework, which means that
+   -     it optimizes for mobile devices first, then scales up, so the
+   -     "viewport" <meta> tag enables CSS media queries to help proper
+   -     rendering and behavior on devices of any size
+   -
+   - For more info about Bootstrap v4:
+   -   * Home Page - https://v4-alpha.getbootstrap.com/
+   -   * Quick Start - https://v4-alpha.getbootstrap.com/getting-started/introduction/
+  -->
+
+<head>
+    <!-- Required meta tags for Bootstrap4 -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>{title}</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+            integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
+            crossorigin="anonymous">
+
+    <style>
+        body {
+            padding-top: 5rem;
+        }
+        h2 {
+            font-size-adjust: -5px;
+        }
+        .starter-template {
+            padding: 3rem 1.5rem;
+            text-align: center;
+        }
+    </style>
+
+</head>
+<!--
+  The four types of pages used in conditional properties are:
+    home     = the single master home page
+               rendered as "$TargetDir/index.html"
+    contents = the single master index/contents page
+               rendered as "$TargetDir/contents.html"
+    module   = the module index pages, one per module
+               rendered as "$TargetDir/$nsName/$modName/index.html"
+    function = the function pages, one per exported function
+               rendered as "$TargetDir/$nsName/$modName/$funName.html"
+  -->
+
+<body>
+    <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
+        <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+            <ul class="navbar-nav mr-auto">
+                {ifdef home}
+                <li class="nav-item active">
+                    <a class="nav-link" href="index.html">API Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="contents.html">API Index</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#">Module</a>
+                </li>
+                {endif home}
+                
+                {ifdef contents}
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">API Home</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="contents.html">API Index <span class="sr-only">(current)</span></a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#">Module</a>
+                </li>
+                {endif contents}
+                
+                {ifdef module}
+                <li class="nav-item">
+                    <a class="nav-link" href="../../index.html">API Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../../contents.html">API Index</a>
+                </li>
+
+                <li class="nav-item active">
+                    <a class="nav-link" href="index.html">Module <span class="sr-only">(current)</span></a>
+                </li>
+                {endif module}
+                
+                {ifdef function}
+                <li class="nav-item">
+                    <a class="nav-link" href="../../index.html">API Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../../contents.html">API Index</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">Module</a>
+                </li>
+                {endif function}
+            </ul>
+            <div class="form-inline my-2 my-lg-0">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="button">
+                    {subtitle}
+                    {ifdef home}{title}{endif home}
+                    {ifdef contents}{title}{endif contents}
+                </button>
+                <!--<input class="form-control mr-sm-2" type="text" placeholder="Search">
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>-->
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="var-breadcrumbs">{breadcrumbs}</div>
+
+        <!--<h2>{subtitle}</h2>-->
+        <h1 class="display-3">{title}</h1>
+
+        <!-- {preamble} = manifest.Description property + module_overview.html <body> contents -->
+
+        {ifdef module}
+        <p class="lead">{module.Description}</p>
+        {endif module}
+
+        <div class="var-body">{body}</div>
+
+        <hr>
+
+        {ifdef module}
+        <blockquote class="blockquote">
+            <dl class="row">
+                <dt class="col-sm-3">Manifest Name:</dt>
+                <dd class="col-sm-9">{module.Name}</dd>
+
+                <dt class="col-sm-3">Module Type:</dt>
+                <dd class="col-sm-9">{module.ModuleType}</dd>
+                
+                <dt class="col-sm-3">GUID:</dt>
+                <dd class="col-sm-9">{module.Guid}</dd>
+                
+                <dt class="col-sm-3">Version:</dt>
+                <dd class="col-sm-9">{module.Version}</dd>
+                
+                <dt class="col-sm-3">Author:</dt>
+                <dd class="col-sm-9">{module.Author}</dd>
+                
+                <dt class="col-sm-3">Company:</dt>
+                <dd class="col-sm-9">{module.CompanyName}</dd>
+                
+                <dt class="col-sm-3">Manifest Copyright:</dt>
+                <dd class="col-sm-9">{module.Copyright}</dd>
+                
+                <dt class="col-sm-3">Prefix:</dt>
+                <dd class="col-sm-9">{module.Prefix}</dd>
+                
+                <dt class="col-sm-3">Manifest Description:</dt>
+                <dd class="col-sm-9">{module.Description}</dd>
+            </dl>
+        </blockquote>
+        {endif module}
+
+        <div class="var-copyright">{copyright}</div>
+        <div class="var-revdate">{revdate}</div>
+
+    </div>
+    <!-- /.container-fluid -->
+
+    <!--<hr />
+
+    <code>Global Properties:</code>
+
+    <h1><code>&#x7b;title}=</code>        {title}</h1>
+    <h2><code>&#x7b;subtitle}=</code>     {subtitle}</h2>
+
+    <div><code>&#x7b;breadcrumbs}=</code> {breadcrumbs}</div>
+    <div><code>&#x7b;preamble}=</code>    {preamble} <i>(computed as <code>module.Description</code> + <code>module_overview.html</code> &lt;body&gt; contents)</i></div>
+    <div><code>&#x7b;body}=</code>        {body}</div>
+    <div><code>&#x7b;postscript}=</code>  {postscript} <i>(not currently used)</i></div>
+    <div><code>&#x7b;copyright}=</code>   {copyright}</div>
+    <div><code>&#x7b;revdate}=</code>     {revdate}</div>
+
+    <code>Module Properties (samples):</code>
+
+    <pre>
+        &#x7b;module.Name}        : {module.Name}
+        &#x7b;module.Guid}        : {module.Guid}
+        &#x7b;module.Version}     : {module.Version}
+        &#x7b;module.Author}      : {module.Author}
+        &#x7b;module.Prefix}      : {module.Prefix}
+        &#x7b;module.ModuleType}  : {module.ModuleType}
+        &#x7b;module.Path}        : {module.Path}
+        &#x7b;module.ModuleBase}  : {module.ModuleBase}
+        &#x7b;module.Copyright}   : {module.Copyright}
+        &#x7b;module.Description} : {module.Description}            
+    </pre>-->
+
+    <!--
+      These Bootstrap v4 asset links are taken right out of the Quick Start
+      guide and utilize the official CDN sources.  The links make use of
+      Subresource Integrity checking and anonymous crossorigin requests for
+      improved security.
+
+      NOTE:  if you update to a newer version of these assets, be sure to
+      update the full asset links, including updated integrity hashes!
+      -->
+
+    <!-- jQuery first, then Tether, then Bootstrap JS. -->
+    <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"
+            integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"
+            integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"
+            integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
+            crossorigin="anonymous"></script>
+
+    <script>
+        // We apply some final styling post-rendering in order to add
+        // some additional visual flair -- namely, color-alternating
+        // striping to tables, with support for mouse-over highlighting
+        var t = $(".var-body table")
+        if (t) {
+            t.removeAttr("border")
+            t.addClass("table-sm")
+            t.addClass("table-bordered")
+            t.addClass("table-striped")
+            t.addClass("table-hover")
+        }
+    </script>
+</body>
+
+</html>

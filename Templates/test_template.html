@@ -1,0 +1,84 @@
+<html>
+<!--
+   - test_template.html - a very basic template for DocTreeGenerator (DTG) that
+   - excercises most of the features in the DTG template facility in order to
+   - visualize how each feature maps to, and impacts the final documentation
+   - output.
+   -
+   - CSS styling is used to highlight and excplicitly isolate different parts
+   - of the final generated output.
+  -->
+
+    <head>
+        <title>&#x7b;title}={title}</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+            div {
+                border: solid 1px #ccf;
+                margin: 2px;
+                padding: 3px;
+            }
+        </style>
+    </head>
+    <body>
+<!--
+  The four types of pages used in conditional properties are:
+    home     = the single master home page
+               rendered as "$TargetDir/index.html"
+    contents = the single master index/contents page
+               rendered as "$TargetDir/contents.html"
+    module   = the module index pages, one per module
+               rendered as "$TargetDir/$nsName/$modName/index.html"
+    function = the function pages, one per exported function
+               rendered as "$TargetDir/$nsName/$modName/$funName.html"
+  -->
+
+        <div>
+            <code>Conditional Properties</code> by Page Type:
+            {ifdef home}     <b><code> &#x7b;ifdef home}     </code></b> {endif home}
+            {ifdef contents} <b><code> &#x7b;ifdef contents} </code></b> {endif contents}
+            {ifdef module}   <b><code> &#x7b;ifdef module}   </code></b> {endif module}
+            {ifdef function} <b><code> &#x7b;ifdef function} </code></b> {endif function}
+        </div>
+
+        {ifdef module}<!--{endif module}
+        {ifdef function}<!--{endif function}
+        <p style="float: right">
+            <a href="index.html">home</a>
+            |
+            <a href="contents.html">contents</a>
+        </p>
+        {ifdef module}-->{endif module}
+        {ifdef function}-->{endif function}
+
+        <code>Global Properties:</code>
+
+        <h1><code>&#x7b;title}=</code>        {title}</h1>
+        <h2><code>&#x7b;subtitle}=</code>     {subtitle}</h2>
+
+        <div><code>&#x7b;breadcrumbs}=</code> {breadcrumbs}</div>
+        <div><code>&#x7b;preamble}=</code>    {preamble} <i>(computed as <code>module.Description</code> + <code>module_overview.html</code> &lt;body&gt; contents)</i></div>
+        <div><code>&#x7b;body}=</code>        {body}</div>
+        <div><code>&#x7b;postscript}=</code>  {postscript} <i>(not currently used)</i></div>
+        <div><code>&#x7b;copyright}=</code>   {copyright}</div>
+        <div><code>&#x7b;revdate}=</code>     {revdate}</div>
+
+        <code>Module Properties (samples):</code>
+
+        <pre>
+            &#x7b;module.Name}        : {module.Name}
+            &#x7b;module.Guid}        : {module.Guid}
+            &#x7b;module.Version}     : {module.Version}
+            &#x7b;module.Author}      : {module.Author}
+            &#x7b;module.Prefix}      : {module.Prefix}
+            &#x7b;module.ModuleType}  : {module.ModuleType}
+            &#x7b;module.Path}        : {module.Path}
+            &#x7b;module.ModuleBase}  : {module.ModuleBase}
+            &#x7b;module.Copyright}   : {module.Copyright}
+            &#x7b;module.Description} : {module.Description}            
+        </pre>
+
+    </body>
+</html>
