@@ -920,4 +920,96 @@ $content
 
 	}
 
+	Describe 'Main' {
+		Mock Write-Host
+		Mock Write-Warning
+		Mock Get-CmdletDocLinks
+		Mock Handle-MissingValue { 'missing value' }
+		Mock Get-ChildItem { @{ 'name' = $Filter } }
+		Mock Remove-AllModules { $script:sequence += 'remove' }
+		Mock Process-Module { $script:sequence += 'process' }
+		Mock Generate-HomePage
+		Mock Generate-ContentsPage
+
+		It 'Imports each module in a namespace before building' {
+			Mock Import-AllModules { $script:sequence += 'import'; return 'm1' }
+			$script:sequence = @()
+			Convert-HelpToHtmlTree -Namespaces 'ns1'
+			Assert-MockCalled Import-AllModules 1 -Scope It
+			$sequence[0] | Should Be 'import'
+			$sequence[1] | Should Be 'process'
+		}
+
+		It 'Removes each module in a namespace after building' {
+			Mock Import-AllModules { $script:sequence += 'import'; return 'm1' }
+			$script:sequence = @()
+			Convert-HelpToHtmlTree -Namespaces 'ns1'
+			Assert-MockCalled Remove-AllModules 1 -Scope It
+			$sequence[1] | Should Be 'process'
+			$sequence[2] | Should Be 'remove'
+		}
+
+		It 'Processes each module in a single namespace' {
+			$moduleNames = 'm1','m2'
+			Mock Import-AllModules { return $moduleNames }
+			$script:sequence = @()
+			Convert-HelpToHtmlTree -Namespaces 'ns1'
+			foreach ($name in $moduleNames) {
+				Assert-MockCalled Process-Module 1 { $moduleName -eq $name } -Scope It
+			}
+		}
+
+		It 'Processes each module in multiple namespaces' {
+			$ns1Modules = @('ns1-m1', 'ns1-m2')
+			$ns2Modules = @('ns2-m1', 'ns2-m2', 'ns2-m3')
+			$namespaces = @{
+				'nspace1' = $ns1Modules
+				'nspace2' = $ns2Modules
+				}
+			# problem getting this to work!
+			# Mock Import-AllModules -MockWith { return $namespaces[$namespace] }
+			Mock Import-AllModules -MockWith { $ns1Modules } -ParameterFilter { $namespace -eq 'nspace1' }
+			Mock Import-AllModules -MockWith { $ns2Modules } -ParameterFilter { $namespace -eq 'nspace2' }
+			$script:sequence = @()
+			Convert-HelpToHtmlTree -Namespaces 'nspace1','nspace2'
+			foreach ($ns in $namespaces.keys) {
+				foreach ($name in $namespaces[$ns]) {
+					#Assert-MockCalled Process-Module 1 { $moduleName -eq $name } -Scope It
+				}
+			}
+		}
+
+		It 'WARNS about no namespaces when supplied argument does not resolve to path' {
+			Mock Import-AllModules
+			Mock Get-ChildItem { @() }
+			Convert-HelpToHtmlTree -Namespaces 'unknownNamespace'
+			Assert-MockCalled Handle-MissingValue 1 { $message -eq 'No namespaces found' } -scope It
+		}
+
+		It 'Does NOT warn about no namespaces when supplied argument resolves to path' {
+			Mock Import-AllModules { return 'm1' }
+			Mock Get-ChildItem { @{ 'name' = $Filter } }
+			# emulate real Process-Module with respect to generating warning
+			Mock Process-Module { $script:moduleCount++ }
+			Convert-HelpToHtmlTree -Namespaces 'ns1'
+			Assert-MockCalled Handle-MissingValue 0 -Scope It
+		}
+
+		It 'WARNS about no modules when namespace dir has none' {
+			Mock Import-AllModules { @() }
+			Mock Get-ChildItem { @{ 'name' = $Filter } }
+			Mock Process-Module { $script:moduleCount++ }
+			Convert-HelpToHtmlTree -Namespaces 'ns1'
+			Assert-MockCalled Handle-MissingValue 1 { $message -eq 'No modules found' } -scope It
+		}
+		It 'Does NOT warn about no modules when modules present' {
+			Mock Import-AllModules { 'm1' }
+			Mock Get-ChildItem { @{ 'name' = $Filter } }
+			Mock Process-Module { $script:moduleCount++ }
+			Convert-HelpToHtmlTree -Namespaces 'ns1'
+			Assert-MockCalled Handle-MissingValue 0  -scope It
+		}
+	}
+
+
 }

@@ -164,6 +164,7 @@ This output is generated from the above input:
 	</ul>
 
 The MSDN references are retrieved automatically from two fixed MSDN reference pages (one for cmdlets and one for "about" topics).  If those fixed references ever change URLs, that will break the generator; update those URLs in the Get-CmdletDocLinks function to mend it.
+Note that if you get just plain text with no hyperlink for any of the first four classes of input, chances are you have a typo, because the function or topic could not be found.
 
 ==== Output Enhancements: Formatting ====
 
@@ -302,7 +303,6 @@ function Convert-HelpToHtmlTree
 
 	Init-Variables
 
-
 	if ($SourceDir) {
 		$moduleRoot = $SourceDir
 	}
@@ -313,19 +313,20 @@ function Convert-HelpToHtmlTree
 	$Namespaces |
 	# Convert wildcards (if any) in Namespaces parameter to instances
 	% {
-		Get-ChildItem $moduleRoot $_ } |
+		Get-ChildItem -Path $moduleRoot -Filter $_ } |
 	% {
 		$namespace = $_.Name # Grab name out of DirectoryInfo object
+		$namespaceDir = Join-Path $moduleRoot $namespace
 		Write-Host "Namespace: $namespace"
 		$script:namespaceCount++;
 		$script:moduleSummary = @{}
 		if ($DocTitle) { $title = "{0} {1}" -f $namespace, $DocTitle }
 		else { $title = "$namespace Namespace"}
-		$namespaceDir = Join-Path $moduleRoot $namespace
 		$saveModuleCount = $moduleCount
-		Get-ChildItem $namespaceDir |
-			? { $_.PsIsContainer } |
-			% { Process-Module $namespace $_.Name $title}
+		# load the modules first in case there are any cross-referenced links
+		$modules = Import-AllModules $namespace
+		$modules | % { Process-Module $namespace $_ $title}
+		Remove-AllModules $modules
 		if ($saveModuleCount -eq $moduleCount) { 
 			[void](Handle-MissingValue "No modules found");
 			$noModulesFlagged = $true
@@ -355,6 +356,25 @@ function Convert-HelpToHtmlTree
 }
 
 ########################### Support #############################
+
+function Import-AllModules($namespace)
+{
+	$modules = Get-ChildItem $namespaceDir |
+		where { $_.PsIsContainer } |
+		select -ExpandProperty Name
+	$modules |
+		% {
+			if (! (Import-ModuleUnlessDocGeneratorItself $namespace $_))
+			{ [void](Handle-MissingValue "Cannot load $_ module") }
+		}
+	return $modules
+}
+
+function Remove-AllModules($modules)
+{
+	$modules |
+	% { Remove-ModuleUnlessDocGeneratorItself $_ }
+}
 
 function Get-CmdletDocLinks($referenceWebPage, $topicRegex)
 {
@@ -398,29 +418,24 @@ function Process-Module($namespace, $moduleName, $parentTitle)
 	Write-Host "    Module: $moduleName"
 	$script:moduleCount++;
 
-	if (! (Import-MostModules $namespace $moduleName))
-	{ [void](Handle-MissingValue "Cannot load $moduleName module") }
-	else {
-		if (!$parentTitle) { $parentTitle = "{0} Namespace" -f $namespace }
-		$moduleDocPath = Join-Path $TargetDir (Join-Path $namespace $moduleName)
-		if (! (Test-Path $moduleDocPath)) { 
-			if ($PSCmdlet.ShouldProcess($moduleDocPath, "mkdir")) {
-				mkdir $moduleDocPath | Out-Null } 
-		}
-
-		$moduleDetails = @{}
-		if ($modulePropertiesInTemplate) {
-			$modulePropertiesInTemplate | % {
-				$newval = invoke-expression "(Get-Module $moduleName).$_"
-				$moduleDetails[$_] = $newval
-			}
-		}
-
-		$help = @{}
-		Generate-FunctionPages $moduleName $moduleDocPath $parentTitle $help
-		Generate-ModulePage $moduleName $moduleDocPath $parentTitle $help
-		Remove-MostModules $moduleName
+	if (!$parentTitle) { $parentTitle = "{0} Namespace" -f $namespace }
+	$moduleDocPath = Join-Path $TargetDir (Join-Path $namespace $moduleName)
+	if (! (Test-Path $moduleDocPath)) { 
+		if ($PSCmdlet.ShouldProcess($moduleDocPath, "mkdir")) {
+			mkdir $moduleDocPath | Out-Null } 
 	}
+
+	$moduleDetails = @{}
+	if ($modulePropertiesInTemplate) {
+		$modulePropertiesInTemplate | % {
+			$newval = invoke-expression "(Get-Module $moduleName).$_"
+			$moduleDetails[$_] = $newval
+		}
+	}
+
+	$help = @{}
+	Generate-FunctionPages $moduleName $moduleDocPath $parentTitle $help
+	Generate-ModulePage $moduleName $moduleDocPath $parentTitle $help
 }
 
 function Generate-FunctionPages($moduleName, $moduleDocPath, $parentTitle, $helpHash)
@@ -686,7 +701,7 @@ function Handle-MissingValue($message)
 }
 
 # Convert Import-Module into a functional object
-function Import-MostModules($namespace, $moduleName)
+function Import-ModuleUnlessDocGeneratorItself($namespace, $moduleName)
 {
 	# Skip reloading this module--causes all functions to be lost!
 	if ($moduleName -eq $thisModule) { return $true }
@@ -700,7 +715,7 @@ function Import-MostModules($namespace, $moduleName)
 	return ! (!$?)
 }
 
-function Remove-MostModules($moduleName)
+function Remove-ModuleUnlessDocGeneratorItself($moduleName)
 {
 	if ($moduleName -ne $thisModule) {
 		# Hmmm... With -WhatIf, Remove-Module complains about no modules removed
