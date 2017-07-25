@@ -310,12 +310,12 @@ function Convert-HelpToHtmlTree
 	Write-Host "Source dir: $moduleRoot"
 
 	$namespaceSummary = @{}
+
+	$Namespaces = GlobExpandNamespaceArgument $Namespaces
+
 	$Namespaces |
-	# Convert wildcards (if any) in Namespaces parameter to instances
 	% {
-		Get-ChildItem -Path $moduleRoot -Filter $_ } |
-	% {
-		$namespace = $_.Name # Grab name out of DirectoryInfo object
+		$namespace = $_
 		$namespaceDir = Join-Path $moduleRoot $namespace
 		Write-Host "Namespace: $namespace"
 		$script:namespaceCount++;
@@ -356,6 +356,15 @@ function Convert-HelpToHtmlTree
 }
 
 ########################### Support #############################
+
+function GlobExpandNamespaceArgument($nsArgument)
+{
+	$nsArgument |
+	% {
+		Get-ChildItem -Path $moduleRoot -Filter $_ |
+		select -ExpandProperty Name
+	}
+}
 
 function Import-AllModules($namespace)
 {
