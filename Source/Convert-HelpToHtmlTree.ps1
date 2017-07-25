@@ -313,20 +313,33 @@ function Convert-HelpToHtmlTree
 
 	$Namespaces = GlobExpandNamespaceArgument $Namespaces
 
+	# load the modules first in case there are any cross-referenced links
+	$modules = @{}
+	if (!$Namespaces) {
+		[void](Handle-MissingValue "No namespaces found");
+	}
+	else {
+	$Namespaces |
+	% {
+		$modules[$_] = Import-AllModules $_
+	}
+
 	$Namespaces |
 	% {
 		$namespace = $_
-		$namespaceDir = Join-Path $moduleRoot $namespace
 		Write-Host "Namespace: $namespace"
 		$script:namespaceCount++;
 		$script:moduleSummary = @{}
 		if ($DocTitle) { $title = "{0} {1}" -f $namespace, $DocTitle }
 		else { $title = "$namespace Namespace"}
 		$saveModuleCount = $moduleCount
-		# load the modules first in case there are any cross-referenced links
-		$modules = Import-AllModules $namespace
-		$modules | % { Process-Module $namespace $_ $title}
-		Remove-AllModules $modules
+
+		# ??Possible Pester bug requires this conditional wrapper that is not
+		# otherwise needed (when the module list is empty).
+		if ($modules[$namespace]) {
+			$modules[$namespace] | % { Process-Module $namespace $_ $title}
+		}
+
 		if ($saveModuleCount -eq $moduleCount) { 
 			[void](Handle-MissingValue "No modules found");
 			$noModulesFlagged = $true
@@ -334,22 +347,24 @@ function Convert-HelpToHtmlTree
 		$namespaceSummary[$namespace] = $moduleSummary
 		Add-ItemToContentsList $namespace "namespace" -itemUrl "index.html"
 	}
-	if ($namespaceSummary.Count -eq 0) {
-		[void](Handle-MissingValue "No namespaces found");
+
+	$modules.Keys |
+	% {
+		Remove-AllModules $modules[$_]
 	}
-	else {
-		# Do this last; uses data collected from above.
-		$title = ""
-		if ($DocTitle) { $title = $DocTitle }
-		else { $title = "PowerShell API" }
-		if ($Namespaces.Count -eq 1) { $title = "{0} {1}" -f $Namespaces[0],$title }
-		Generate-HomePage $moduleRoot $title
-		Generate-ContentsPage $title
-		if ($noModulesFlagged) {
-			write-warning "Note that 'No modules found' typically indicates your"
-			write-warning "module directories are not within a namespace directory." }
-			"Done: {0} namespace(s), {1} module(s), {2} function(s), {3} file(s) processed." `
-			-f $namespaceCount,$moduleCount, $functionCount, $fileCount
+
+	# Do this last; uses data collected from above.
+	$title = ""
+	if ($DocTitle) { $title = $DocTitle }
+	else { $title = "PowerShell API" }
+	if ($Namespaces.Count -eq 1) { $title = "{0} {1}" -f $Namespaces[0],$title }
+	Generate-HomePage $moduleRoot $title
+	Generate-ContentsPage $title
+	if ($noModulesFlagged) {
+		write-warning "Note that 'No modules found' typically indicates your"
+		write-warning "module directories are not within a namespace directory." }
+		"Done: {0} namespace(s), {1} module(s), {2} function(s), {3} file(s) processed." `
+		-f $namespaceCount,$moduleCount, $functionCount, $fileCount
 	}
 
 	if ($EnableExit) { Exit-WithCode -FailedCount $failedCount }
@@ -368,6 +383,7 @@ function GlobExpandNamespaceArgument($nsArgument)
 
 function Import-AllModules($namespace)
 {
+	$namespaceDir = Join-Path $moduleRoot $namespace
 	$modules = Get-ChildItem $namespaceDir |
 		where { $_.PsIsContainer } |
 		select -ExpandProperty Name
@@ -444,7 +460,7 @@ function Process-Module($namespace, $moduleName, $parentTitle)
 
 	$help = @{}
 	Generate-FunctionPages $moduleName $moduleDocPath $parentTitle $help
-	Generate-ModulePage $moduleName $moduleDocPath $parentTitle $help
+	Generate-ModulePage $namespace $moduleName $moduleDocPath $parentTitle $help
 }
 
 function Generate-FunctionPages($moduleName, $moduleDocPath, $parentTitle, $helpHash)
@@ -490,7 +506,7 @@ function Generate-FunctionPages($moduleName, $moduleDocPath, $parentTitle, $help
 	}
 }
 
-function Generate-ModulePage($moduleName, $moduleDocPath, $parentTitle, $helpHash)
+function Generate-ModulePage($namespace, $moduleName, $moduleDocPath, $parentTitle, $helpHash)
 {
 	$indexTableRows = 
 	Get-Command -Module $moduleName | 
@@ -509,6 +525,7 @@ function Generate-ModulePage($moduleName, $moduleDocPath, $parentTitle, $helpHas
 	}
 
 	$targetFile = join-path $moduleDocPath "index.html"
+	$namespaceDir = Join-Path $moduleRoot $namespace
 	$breadcrumbs = Get-HtmlBreadCrumbs `
 		(Get-HtmlLink (Join-HtmlPath "..", "..", "index.html") $namespace),
 		$moduleName

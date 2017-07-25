@@ -924,15 +924,15 @@ $content
 		Mock Write-Host
 		Mock Write-Warning
 		Mock Get-CmdletDocLinks
-		Mock Handle-MissingValue { 'missing value' }
-		Mock Get-ChildItem { @{ 'name' = $Filter } }
-		Mock Remove-AllModules { $script:sequence += 'remove' }
-		Mock Process-Module { $script:sequence += 'process' }
+		Mock Handle-MissingValue
 		Mock Generate-HomePage
 		Mock Generate-ContentsPage
 
 		It 'Imports each module in a namespace before building' {
 			Mock Import-AllModules { $script:sequence += 'import'; return 'm1' }
+			Mock Remove-AllModules { $script:sequence += 'remove' }
+			Mock Process-Module { $script:sequence += 'process' }
+			Mock GlobExpandNamespaceArgument { $nsArgument }
 			$script:sequence = @()
 			Convert-HelpToHtmlTree -Namespaces 'ns1'
 			Assert-MockCalled Import-AllModules 1 -Scope It
@@ -942,6 +942,9 @@ $content
 
 		It 'Removes each module in a namespace after building' {
 			Mock Import-AllModules { $script:sequence += 'import'; return 'm1' }
+			Mock Remove-AllModules { $script:sequence += 'remove' }
+			Mock Process-Module { $script:sequence += 'process' }
+			Mock GlobExpandNamespaceArgument { $nsArgument }
 			$script:sequence = @()
 			Convert-HelpToHtmlTree -Namespaces 'ns1'
 			Assert-MockCalled Remove-AllModules 1 -Scope It
@@ -952,6 +955,9 @@ $content
 		It 'Processes each module in a single namespace' {
 			$moduleNames = 'm1','m2'
 			Mock Import-AllModules { return $moduleNames }
+			Mock Remove-AllModules { $script:sequence += 'remove' }
+			Mock Process-Module { $script:sequence += 'process' }
+			Mock GlobExpandNamespaceArgument { $nsArgument }
 			$script:sequence = @()
 			Convert-HelpToHtmlTree -Namespaces 'ns1'
 			foreach ($name in $moduleNames) {
@@ -970,6 +976,9 @@ $content
 			# Mock Import-AllModules -MockWith { return $namespaces[$namespace] }
 			Mock Import-AllModules -MockWith { $ns1Modules } -ParameterFilter { $namespace -eq 'nspace1' }
 			Mock Import-AllModules -MockWith { $ns2Modules } -ParameterFilter { $namespace -eq 'nspace2' }
+			Mock Remove-AllModules { $script:sequence += 'remove' }
+			Mock Process-Module { $script:sequence += 'process' }
+			Mock GlobExpandNamespaceArgument { $nsArgument }
 			$script:sequence = @()
 			Convert-HelpToHtmlTree -Namespaces 'nspace1','nspace2'
 			foreach ($ns in $namespaces.keys) {
@@ -981,14 +990,17 @@ $content
 
 		It 'WARNS about no namespaces when supplied argument does not resolve to path' {
 			Mock Import-AllModules
-			Mock Get-ChildItem { @() }
+			Mock Remove-AllModules
+			Mock Process-Module
+			Mock GlobExpandNamespaceArgument { return @() }
 			Convert-HelpToHtmlTree -Namespaces 'unknownNamespace'
 			Assert-MockCalled Handle-MissingValue 1 { $message -eq 'No namespaces found' } -scope It
 		}
 
 		It 'Does NOT warn about no namespaces when supplied argument resolves to path' {
 			Mock Import-AllModules { return 'm1' }
-			Mock Get-ChildItem { @{ 'name' = $Filter } }
+			Mock Remove-AllModules
+			Mock GlobExpandNamespaceArgument { $nsArgument }
 			# emulate real Process-Module with respect to generating warning
 			Mock Process-Module { $script:moduleCount++ }
 			Convert-HelpToHtmlTree -Namespaces 'ns1'
@@ -997,19 +1009,21 @@ $content
 
 		It 'WARNS about no modules when namespace dir has none' {
 			Mock Import-AllModules { @() }
-			Mock Get-ChildItem { @{ 'name' = $Filter } }
+			Mock Remove-AllModules
+			Mock GlobExpandNamespaceArgument { $nsArgument }
 			Mock Process-Module { $script:moduleCount++ }
 			Convert-HelpToHtmlTree -Namespaces 'ns1'
 			Assert-MockCalled Handle-MissingValue 1 { $message -eq 'No modules found' } -scope It
 		}
 		It 'Does NOT warn about no modules when modules present' {
 			Mock Import-AllModules { 'm1' }
-			Mock Get-ChildItem { @{ 'name' = $Filter } }
+			Mock Remove-AllModules
+			Mock GlobExpandNamespaceArgument { $nsArgument }
 			Mock Process-Module { $script:moduleCount++ }
 			Convert-HelpToHtmlTree -Namespaces 'ns1'
 			Assert-MockCalled Handle-MissingValue 0  -scope It
 		}
-	}
 
+	}
 
 }
