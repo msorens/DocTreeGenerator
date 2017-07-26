@@ -309,62 +309,41 @@ function Convert-HelpToHtmlTree
 	Write-Host "Target dir: $TargetDir"
 	Write-Host "Source dir: $moduleRoot"
 
-	$namespaceSummary = @{}
-
 	$Namespaces = GlobExpandNamespaceArgument $Namespaces
 
-	# load the modules first in case there are any cross-referenced links
-	$modules = @{}
 	if (!$Namespaces) {
 		[void](Handle-MissingValue "No namespaces found");
 	}
 	else {
-	$Namespaces |
-	% {
-		$modules[$_] = Import-AllModules $_
-	}
+		$namespaceSummary = @{}
+		$modules = @{}
 
-	$Namespaces |
-	% {
-		$namespace = $_
-		Write-Host "Namespace: $namespace"
-		$script:namespaceCount++;
-		$script:moduleSummary = @{}
-		if ($DocTitle) { $title = "{0} {1}" -f $namespace, $DocTitle }
-		else { $title = "$namespace Namespace"}
-		$saveModuleCount = $moduleCount
-
-		# ??Possible Pester bug requires this conditional wrapper that is not
-		# otherwise needed (when the module list is empty).
-		if ($modules[$namespace]) {
-			$modules[$namespace] | % { Process-Module $namespace $_ $title}
+		$Namespaces | % { $modules[$_] = Import-AllModules $_ }
+	
+		# Process in a separate loop from above so all modules are loaded first
+		# in case they are referenced in documentation links
+		$Namespaces | % { $namespaceSummary[$_] = Process-Namespace $_ $modules }
+	
+		$modules.Keys | % { Remove-AllModules $modules[$_] }
+	
+		$emptyNamespaces = $modules.Keys | Where { !$modules[$_] }
+		if ($emptyNamespaces) {
+			[void](Handle-MissingValue "No modules found for these namespaces: $emptyNamespaces");
+			write-warning "Note that 'No modules found' typically indicates your"
+			write-warning "module directories are not within a namespace directory."
 		}
+	
+		$title = ""
+		if ($DocTitle) { $title = $DocTitle }
+		else { $title = "PowerShell API" }
+		if ($Namespaces.Count -eq 1) { $title = "{0} {1}" -f $Namespaces[0],$title }
 
-		if ($saveModuleCount -eq $moduleCount) { 
-			[void](Handle-MissingValue "No modules found");
-			$noModulesFlagged = $true
-		}
-		$namespaceSummary[$namespace] = $moduleSummary
-		Add-ItemToContentsList $namespace "namespace" -itemUrl "index.html"
-	}
-
-	$modules.Keys |
-	% {
-		Remove-AllModules $modules[$_]
-	}
-
-	# Do this last; uses data collected from above.
-	$title = ""
-	if ($DocTitle) { $title = $DocTitle }
-	else { $title = "PowerShell API" }
-	if ($Namespaces.Count -eq 1) { $title = "{0} {1}" -f $Namespaces[0],$title }
-	Generate-HomePage $moduleRoot $title
-	Generate-ContentsPage $title
-	if ($noModulesFlagged) {
-		write-warning "Note that 'No modules found' typically indicates your"
-		write-warning "module directories are not within a namespace directory." }
+		# Generate global pages last, using data collected from pages above.
+		Generate-HomePage $namespaceSummary $moduleRoot $title
+		Generate-ContentsPage $title
+	
 		"Done: {0} namespace(s), {1} module(s), {2} function(s), {3} file(s) processed." `
-		-f $namespaceCount,$moduleCount, $functionCount, $fileCount
+			-f $Namespaces.Count, $moduleCount, $functionCount, $fileCount
 	}
 
 	if ($EnableExit) { Exit-WithCode -FailedCount $failedCount }
@@ -436,6 +415,23 @@ function Add-ItemToContentsList(
 		Add-Member -inputobject $item NoteProperty $_ $PSBoundParameters[$_]
 	}
 	$script:itemList += $item
+}
+
+function Process-Namespace($namespace, $modules)
+{
+	Write-Host "Namespace: $namespace"
+	$script:moduleSummary = @{}
+	if ($DocTitle) { $title = "{0} {1}" -f $namespace, $DocTitle }
+	else { $title = "$namespace Namespace"}
+
+	# ??Possible Pester bug requires this conditional wrapper that is not
+	# otherwise needed (when the module list is empty).
+	if ($modules[$namespace]) {
+		$modules[$namespace] | % { Process-Module $namespace $_ $title}
+	}
+
+	Add-ItemToContentsList $namespace "namespace" -itemUrl "index.html"
+	return $moduleSummary
 }
 
 function Process-Module($namespace, $moduleName, $parentTitle)
@@ -544,7 +540,7 @@ function Generate-ModulePage($namespace, $moduleName, $moduleDocPath, $parentTit
 		-parentUrl "index.html"
 }
 
-function Generate-HomePage($path, $title)
+function Generate-HomePage($namespaceSummary, $path, $title)
 {
 	Write-Host "Generating home page..."
 	$body = $namespaceSummary.Keys | Sort  | % {

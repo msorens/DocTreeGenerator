@@ -5,8 +5,6 @@ function Init-Variables()
 	$script:fileCount        = 0
 	$script:functionCount    = 0
 	$script:moduleCount      = 0
-	$script:namespaceCount   = 0
-	$script:noModulesFlagged = $false
 	$script:itemList         = @()
 	$script:failedCount      = 0
 

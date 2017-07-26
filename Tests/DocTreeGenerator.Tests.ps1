@@ -1007,14 +1007,35 @@ $content
 			Assert-MockCalled Handle-MissingValue 0 -Scope It
 		}
 
-		It 'WARNS about no modules when namespace dir has none' {
+		It 'WARNS about no modules when single namespace dir has none' {
 			Mock Import-AllModules { @() }
 			Mock Remove-AllModules
 			Mock GlobExpandNamespaceArgument { $nsArgument }
 			Mock Process-Module { $script:moduleCount++ }
 			Convert-HelpToHtmlTree -Namespaces 'ns1'
-			Assert-MockCalled Handle-MissingValue 1 { $message -eq 'No modules found' } -scope It
+			Assert-MockCalled Handle-MissingValue 1 { $message -match 'No modules found.*ns1' } -scope It
 		}
+
+		It 'WARNS about no modules when one of several namespace dirs has none' {
+			Mock Import-AllModules { @() } -ParameterFilter { $namespace -eq 'ns2' }
+			Mock Import-AllModules { 'm1','m2' }
+			Mock Remove-AllModules
+			Mock GlobExpandNamespaceArgument { $nsArgument }
+			Mock Process-Module { $script:moduleCount++ }
+			Convert-HelpToHtmlTree -Namespaces 'ns1','ns2','ns3'
+			Assert-MockCalled Handle-MissingValue 1 { $message -match 'No modules found.*ns2' } -scope It
+		}
+
+		It 'WARNS about no modules when multiple namespace dirs have none' {
+			Mock Import-AllModules { @() } -ParameterFilter { $namespace -in 'ns2','ns4' }
+			Mock Import-AllModules { 'm1','m2' }
+			Mock Remove-AllModules
+			Mock GlobExpandNamespaceArgument { $nsArgument }
+			Mock Process-Module { $script:moduleCount++ }
+			Convert-HelpToHtmlTree -Namespaces 'ns1','ns2','ns3','ns4'
+			Assert-MockCalled Handle-MissingValue 1 { $message -match 'No modules found.*ns2.*ns4' } -scope It
+		}
+
 		It 'Does NOT warn about no modules when modules present' {
 			Mock Import-AllModules { 'm1' }
 			Mock Remove-AllModules
