@@ -929,7 +929,7 @@ $content
 		Mock Generate-ContentsPage
 
 		It 'Imports each module in a namespace before building' {
-			Mock Import-AllModules { $script:sequence += 'import'; return 'm1' }
+			Mock Import-AllModules -MockWith { $script:sequence += 'import'; return 'm1' } -ParameterFilter { $namespace -eq 'ns1' }
 			Mock Remove-AllModules { $script:sequence += 'remove' }
 			Mock Process-Module { $script:sequence += 'process' }
 			Mock GlobExpandNamespaceArgument { $nsArgument }
@@ -941,7 +941,7 @@ $content
 		}
 
 		It 'Removes each module in a namespace after building' {
-			Mock Import-AllModules { $script:sequence += 'import'; return 'm1' }
+			Mock Import-AllModules -MockWith { $script:sequence += 'import'; return 'm1' } -ParameterFilter { $namespace -eq 'ns1' }
 			Mock Remove-AllModules { $script:sequence += 'remove' }
 			Mock Process-Module { $script:sequence += 'process' }
 			Mock GlobExpandNamespaceArgument { $nsArgument }
@@ -954,7 +954,7 @@ $content
 
 		It 'Processes each module in a single namespace' {
 			$moduleNames = 'm1','m2'
-			Mock Import-AllModules { return $moduleNames }
+			Mock Import-AllModules -MockWith { $moduleNames } -ParameterFilter { $namespace -eq 'ns1' }
 			Mock Remove-AllModules { $script:sequence += 'remove' }
 			Mock Process-Module { $script:sequence += 'process' }
 			Mock GlobExpandNamespaceArgument { $nsArgument }
@@ -972,8 +972,6 @@ $content
 				'nspace1' = $ns1Modules
 				'nspace2' = $ns2Modules
 				}
-			# problem getting this to work!
-			# Mock Import-AllModules -MockWith { return $namespaces[$namespace] }
 			Mock Import-AllModules -MockWith { $ns1Modules } -ParameterFilter { $namespace -eq 'nspace1' }
 			Mock Import-AllModules -MockWith { $ns2Modules } -ParameterFilter { $namespace -eq 'nspace2' }
 			Mock Remove-AllModules { $script:sequence += 'remove' }
@@ -989,7 +987,7 @@ $content
 		}
 
 		It 'WARNS about no namespaces when supplied argument does not resolve to path' {
-			Mock Import-AllModules
+			Mock Import-AllModules -ParameterFilter { $namespace -eq 'unknownNamespace' }
 			Mock Remove-AllModules
 			Mock Process-Module
 			Mock GlobExpandNamespaceArgument { return @() }
@@ -998,7 +996,7 @@ $content
 		}
 
 		It 'Does NOT warn about no namespaces when supplied argument resolves to path' {
-			Mock Import-AllModules { return 'm1' }
+			Mock Import-AllModules -MockWith { 'm1' } -ParameterFilter { $namespace -eq 'ns1' }
 			Mock Remove-AllModules
 			Mock GlobExpandNamespaceArgument { $nsArgument }
 			# emulate real Process-Module with respect to generating warning
@@ -1008,7 +1006,7 @@ $content
 		}
 
 		It 'WARNS about no modules when single namespace dir has none' {
-			Mock Import-AllModules { @() }
+			Mock Import-AllModules -MockWith { @() } -ParameterFilter { $namespace -eq 'ns1' }
 			Mock Remove-AllModules
 			Mock GlobExpandNamespaceArgument { $nsArgument }
 			Mock Process-Module { $script:moduleCount++ }
@@ -1018,7 +1016,7 @@ $content
 
 		It 'WARNS about no modules when one of several namespace dirs has none' {
 			Mock Import-AllModules { @() } -ParameterFilter { $namespace -eq 'ns2' }
-			Mock Import-AllModules { 'm1','m2' }
+			Mock Import-AllModules { 'm1','m2' } -ParameterFilter { $namespace -in 'ns1','ns3' }
 			Mock Remove-AllModules
 			Mock GlobExpandNamespaceArgument { $nsArgument }
 			Mock Process-Module { $script:moduleCount++ }
@@ -1028,7 +1026,7 @@ $content
 
 		It 'WARNS about no modules when multiple namespace dirs have none' {
 			Mock Import-AllModules { @() } -ParameterFilter { $namespace -in 'ns2','ns4' }
-			Mock Import-AllModules { 'm1','m2' }
+			Mock Import-AllModules { 'm1','m2' } -ParameterFilter { $namespace -in 'ns1','ns3' }
 			Mock Remove-AllModules
 			Mock GlobExpandNamespaceArgument { $nsArgument }
 			Mock Process-Module { $script:moduleCount++ }
@@ -1037,12 +1035,80 @@ $content
 		}
 
 		It 'Does NOT warn about no modules when modules present' {
-			Mock Import-AllModules { 'm1' }
+			Mock Import-AllModules -MockWith { 'm1' } -ParameterFilter { $namespace -eq 'ns1' }
 			Mock Remove-AllModules
 			Mock GlobExpandNamespaceArgument { $nsArgument }
 			Mock Process-Module { $script:moduleCount++ }
 			Convert-HelpToHtmlTree -Namespaces 'ns1'
 			Assert-MockCalled Handle-MissingValue 0  -scope It
+		}
+
+		It 'Returns multiple modules that loaded without error' {
+			Mock Get-ChildItem { @(
+				(New-Object PSObject -Property @{ name = 'badModule'; PsIsContainer = $true }),
+				(New-Object PSObject -Property @{ name = 'm1'; PsIsContainer = $true }),
+				(New-Object PSObject -Property @{ name = 'm2'; PsIsContainer = $true })
+			) }
+			Mock Import-ModuleUnlessDocGeneratorItself { throw "bad module" } -ParameterFilter { $moduleName -eq 'badModule' }
+			Mock Import-ModuleUnlessDocGeneratorItself 
+			Mock Remove-AllModules
+			Mock GlobExpandNamespaceArgument { $nsArgument }
+			Mock Process-Module
+			Convert-HelpToHtmlTree -Namespaces 'ns5'
+			Assert-MockCalled Handle-MissingValue 1 { $message -match 'bad module' } -scope It
+			Assert-MockCalled Remove-AllModules 1 { $nsModules -contains 'm1' } -scope It
+			Assert-MockCalled Remove-AllModules 1 { $nsModules -contains 'm2' } -scope It
+			Assert-MockCalled Remove-AllModules 1 { $nsModules -notcontains 'badModule' } -scope It
+			Assert-MockCalled Remove-AllModules 1 { $nsModules.Count -eq 2 } -scope It
+		}
+
+		It 'Returns single module out of multiple modules that loaded without error' {
+			Mock Get-ChildItem { @(
+				(New-Object PSObject -Property @{ name = 'badM1'; PsIsContainer = $true }),
+				(New-Object PSObject -Property @{ name = 'badM2'; PsIsContainer = $true }),
+				(New-Object PSObject -Property @{ name = 'm1'; PsIsContainer = $true })
+			) }
+			Mock Import-ModuleUnlessDocGeneratorItself { throw "bad module" } -ParameterFilter { $moduleName -match 'bad' }
+			Mock Import-ModuleUnlessDocGeneratorItself 
+			Mock Remove-AllModules
+			Mock GlobExpandNamespaceArgument { $nsArgument }
+			Mock Process-Module
+			Convert-HelpToHtmlTree -Namespaces 'ns5'
+			Assert-MockCalled Handle-MissingValue 1 { $message -match 'bad module' } -scope It
+			Assert-MockCalled Remove-AllModules 1 { $nsModules -contains 'm1' } -scope It
+			Assert-MockCalled Remove-AllModules 1 { $nsModules -notcontains 'badM1' } -scope It
+			Assert-MockCalled Remove-AllModules 1 { $nsModules -notcontains 'badM2' } -scope It
+			Assert-MockCalled Remove-AllModules 1 { $nsModules.Count -eq 1 } -scope It
+		}
+
+		It 'Returns sole module that loaded without error' {
+			Mock Get-ChildItem { @(
+				(New-Object PSObject -Property @{ name = 'm1'; PsIsContainer = $true })
+			) }
+			Mock Import-ModuleUnlessDocGeneratorItself { throw "bad module" } -ParameterFilter { $moduleName -match 'bad' }
+			Mock Import-ModuleUnlessDocGeneratorItself 
+			Mock Remove-AllModules
+			Mock GlobExpandNamespaceArgument { $nsArgument }
+			Mock Process-Module
+			Convert-HelpToHtmlTree -Namespaces 'ns5'
+			Assert-MockCalled Handle-MissingValue 0 { $message -match 'bad module' } -scope It
+			Assert-MockCalled Remove-AllModules 1 { $nsModules -contains 'm1' } -scope It
+			Assert-MockCalled Remove-AllModules 1 { $nsModules.Count -eq 1 } -scope It
+		}
+
+		It 'Returns no modules when sole module has error' {
+			Mock Get-ChildItem { @(
+				(New-Object PSObject -Property @{ name = 'badModule'; PsIsContainer = $true })
+			) }
+			Mock Import-ModuleUnlessDocGeneratorItself { throw "bad module" } -ParameterFilter { $moduleName -match 'bad' }
+			Mock Import-ModuleUnlessDocGeneratorItself 
+			Mock Remove-AllModules
+			Mock GlobExpandNamespaceArgument { $nsArgument }
+			Mock Process-Module
+			Convert-HelpToHtmlTree -Namespaces 'ns5'
+			Assert-MockCalled Handle-MissingValue 1 { $message -match 'bad module' } -scope It
+			Assert-MockCalled Remove-AllModules 1 { $nsModules -notcontains 'badModule' } -scope It
+			Assert-MockCalled Remove-AllModules 1 { $nsModules.Count -eq 0 } -scope It
 		}
 
 	}

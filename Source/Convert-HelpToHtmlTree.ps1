@@ -318,13 +318,13 @@ function Convert-HelpToHtmlTree
 		$namespaceSummary = @{}
 		$modules = @{}
 
-		$Namespaces | % { $modules[$_] = Import-AllModules $_ }
+		$Namespaces | % { $modules[$_] = @(Import-AllModules $_) }
 	
 		# Process in a separate loop from above so all modules are loaded first
 		# in case they are referenced in documentation links
-		$Namespaces | % { $namespaceSummary[$_] = Process-Namespace $_ $modules }
+		$Namespaces | % { $namespaceSummary[$_] = Process-Namespace $_ $modules[$_] }
 	
-		$modules.Keys | % { Remove-AllModules $modules[$_] }
+		$modules.Keys | % { Remove-AllModules $_ $modules[$_] }
 	
 		$emptyNamespaces = $modules.Keys | Where { !$modules[$_] }
 		if ($emptyNamespaces) {
@@ -363,20 +363,29 @@ function GlobExpandNamespaceArgument($nsArgument)
 function Import-AllModules($namespace)
 {
 	$namespaceDir = Join-Path $moduleRoot $namespace
-	$modules = Get-ChildItem $namespaceDir |
+	$modules = @(Get-ChildItem $namespaceDir |
 		where { $_.PsIsContainer } |
-		select -ExpandProperty Name
+		select -ExpandProperty Name)
+	$validModules = @()
 	$modules |
 		% {
-			if (! (Import-ModuleUnlessDocGeneratorItself $namespace $_))
-			{ [void](Handle-MissingValue "Cannot load $_ module") }
+			try {
+				[void](Import-ModuleUnlessDocGeneratorItself $namespace $_)
+				$validModules += $_
+			}
+			catch {
+				$errRecord = $_
+				[void](Handle-MissingValue $errRecord.Exception.Message)
+			}
 		}
-	return $modules
+	write-Host "Imported $($validModules.count) out of $($modules.count) modules for namespace '$namespace'"
+	return $validModules
 }
 
-function Remove-AllModules($modules)
+function Remove-AllModules($namespace, $nsModules)
 {
-	$modules |
+	write-Host "Removing $($nsModules.count) modules for namespace '$namespace'"
+	$nsModules |
 	% { Remove-ModuleUnlessDocGeneratorItself $_ }
 }
 
@@ -417,7 +426,7 @@ function Add-ItemToContentsList(
 	$script:itemList += $item
 }
 
-function Process-Namespace($namespace, $modules)
+function Process-Namespace($namespace, $nsModules)
 {
 	Write-Host "Namespace: $namespace"
 	$script:moduleSummary = @{}
@@ -426,8 +435,8 @@ function Process-Namespace($namespace, $modules)
 
 	# ??Possible Pester bug requires this conditional wrapper that is not
 	# otherwise needed (when the module list is empty).
-	if ($modules[$namespace]) {
-		$modules[$namespace] | % { Process-Module $namespace $_ $title}
+	if ($nsModules) {
+		$nsModules | % { Process-Module $namespace $_ $title}
 	}
 
 	Add-ItemToContentsList $namespace "namespace" -itemUrl "index.html"
@@ -733,7 +742,7 @@ function Import-ModuleUnlessDocGeneratorItself($namespace, $moduleName)
 	Remove-Module $moduleName -ErrorAction SilentlyContinue
 
 	$modulePath = $moduleRoot, $namespace, $moduleName, "$moduleName.psd1" -join '\'
-	Import-Module $modulePath -force
+	Import-Module $modulePath -Force -ErrorAction Stop
 	return ! (!$?)
 }
 
