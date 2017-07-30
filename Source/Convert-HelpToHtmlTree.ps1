@@ -328,9 +328,8 @@ function Convert-HelpToHtmlTree
 	
 		$emptyNamespaces = $modules.Keys | Where { !$modules[$_] }
 		if ($emptyNamespaces) {
-			[void](Handle-MissingValue "No modules found for these namespaces: $emptyNamespaces");
-			write-warning "Note that 'No modules found' typically indicates your"
-			write-warning "module directories are not within a namespace directory."
+			[void](Handle-MissingValue ("No modules found for these namespaces: $emptyNamespaces`n"+
+				"      (typically indicates your module directories are not within a namespace directory)"));
 		}
 	
 		$title = ""
@@ -470,9 +469,16 @@ function Process-Module($namespace, $moduleName, $parentTitle)
 
 function Generate-FunctionPages($moduleName, $moduleDocPath, $parentTitle, $helpHash)
 {
-	Get-Command -Module $moduleName |
-	? { $_.CommandType -in $CMDLET_TYPES } |
-	Filter-ThisModule $moduleName |
+	$functions = @(
+		Get-Command -Module $moduleName |
+		Where { $_.CommandType -in $CMDLET_TYPES } |
+		Filter-ThisModule $moduleName)
+	if (!$functions) {
+		[void](Handle-MissingValue ("No functions found in $moduleName;`n"+
+			"      (typically this means your functions or cmdlets are not exported)"));
+		return
+	}
+	$functions |
 	% { 
 		$function = $_.Name
 		Write-Host ("        {0}: {1}" -f $_.CommandType, $function)
