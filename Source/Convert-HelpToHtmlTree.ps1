@@ -309,10 +309,10 @@ function Convert-HelpToHtmlTree
 	Write-Host "Target dir: $TargetDir"
 	Write-Host "Source dir: $moduleRoot"
 
-	$Namespaces = GlobExpandNamespaceArgument $Namespaces
+	$Namespaces = Get-GlobExpandNamespaceArgument $Namespaces
 
 	if (!$Namespaces) {
-		[void](Handle-MissingValue "No namespaces found");
+		[void](Handle-MissingValue "No namespaces found")
 	}
 	else {
 		$namespaceSummary = @{}
@@ -329,7 +329,7 @@ function Convert-HelpToHtmlTree
 		$emptyNamespaces = $modules.Keys | Where { !$modules[$_] }
 		if ($emptyNamespaces) {
 			[void](Handle-MissingValue ("No modules found for these namespaces: $emptyNamespaces`n"+
-				"      (typically indicates your module directories are not within a namespace directory)"));
+				'      (typically indicates your module directories are not within a namespace directory)'))
 		}
 	
 		$title = ""
@@ -341,7 +341,7 @@ function Convert-HelpToHtmlTree
 		Generate-HomePage $namespaceSummary $moduleRoot $title
 		Generate-ContentsPage $title
 	
-		"Done: {0} namespace(s), {1} module(s), {2} function(s), {3} file(s) processed." `
+		'Done: {0} namespace(s), {1} module(s), {2} function(s), {3} file(s) processed.' `
 			-f $Namespaces.Count, $moduleCount, $functionCount, $fileCount
 	}
 
@@ -350,12 +350,12 @@ function Convert-HelpToHtmlTree
 
 ########################### Support #############################
 
-function GlobExpandNamespaceArgument($nsArgument)
+function Get-GlobExpandNamespaceArgument($nsArgument)
 {
 	$nsArgument |
 	% {
 		Get-ChildItem -Path $moduleRoot -Filter $_ |
-		select -ExpandProperty Name
+		Select -ExpandProperty Name
 	}
 }
 
@@ -363,8 +363,8 @@ function Import-AllModules($namespace)
 {
 	$namespaceDir = Join-Path $moduleRoot $namespace
 	$modules = @(Get-ChildItem $namespaceDir |
-		where { $_.PsIsContainer } |
-		select -ExpandProperty Name)
+		Where { $_.PsIsContainer } |
+		Select -ExpandProperty Name)
 	$validModules = @()
 	$modules |
 		% {
@@ -391,8 +391,8 @@ function Remove-AllModules($namespace, $nsModules)
 function Get-CmdletDocLinks($referenceWebPage, $topicRegex)
 {
 	# Adapted from http://powershell.com/cs/blogs/tips/archive/2010/10/06/scraping-information-from-web-pages.aspx
-	$cmdletReferenceWebPage = "http://technet.microsoft.com/en-us/library/dd347701.aspx"
-	$aboutReferenceWebPage  = "http://technet.microsoft.com/en-us/library/dd347616.aspx"
+	$cmdletReferenceWebPage = 'http://technet.microsoft.com/en-us/library/dd347701.aspx'
+	$aboutReferenceWebPage  = 'http://technet.microsoft.com/en-us/library/dd347616.aspx'
 	$cmdletRegex            = [RegEx]'<p>\s*<a\s+href="(http.*?)">(\w+-\w+)</a>'
 	$aboutRegex             = [RegEx]'<p>\s*<a\s+href="(http.*?)">(about_\w+)</a>'
 
@@ -438,14 +438,14 @@ function Process-Namespace($namespace, $nsModules)
 		$nsModules | % { Process-Module $namespace $_ $title}
 	}
 
-	Add-ItemToContentsList $namespace "namespace" -itemUrl "index.html"
+	Add-ItemToContentsList $namespace "namespace" -itemUrl $home_page_filename
 	return $moduleSummary
 }
 
 function Process-Module($namespace, $moduleName, $parentTitle)
 {
 	Write-Host "    Module: $moduleName"
-	$script:moduleCount++;
+	$script:moduleCount++
 
 	if (!$parentTitle) { $parentTitle = "{0} Namespace" -f $namespace }
 	$moduleDocPath = Join-Path $TargetDir (Join-Path $namespace $moduleName)
@@ -475,14 +475,14 @@ function Generate-FunctionPages($moduleName, $moduleDocPath, $parentTitle, $help
 		Filter-ThisModule $moduleName)
 	if (!$functions) {
 		[void](Handle-MissingValue ("No functions found in $moduleName;`n"+
-			"      (typically this means your functions or cmdlets are not exported)"));
+			'      (typically this means your functions or cmdlets are not exported)'))
 		return
 	}
 	$functions |
 	% { 
 		$function = $_.Name
 		Write-Host ("        {0}: {1}" -f $_.CommandType, $function)
-		$script:functionCount++;
+		$script:functionCount++
 		$helpHash[$function] = Microsoft.PowerShell.Core\Get-Help $function -Full -ErrorAction SilentlyContinue
 		# convert to string array;
 		# must specify a wide width otherwise lines break at 80 characters!
@@ -490,7 +490,7 @@ function Generate-FunctionPages($moduleName, $moduleDocPath, $parentTitle, $help
 		# If no doc-comments are attached to function, Get-Help returns a single line
 		# enumerating syntax.
 		if ($helpText.Count -eq 1) {
-			Handle-MissingValue "Cannot find Help for $function" | Out-Null
+			[void](Handle-MissingValue "Cannot find Help for $function")
 			# Shows a blank entry for this function on the module summary page.
 			$helpHash[$function].Synopsis = ""
 		}
@@ -499,8 +499,8 @@ function Generate-FunctionPages($moduleName, $moduleDocPath, $parentTitle, $help
 		
 		$targetFile = join-path $moduleDocPath ($function+".html")
 		$breadcrumbs = Get-HtmlBreadCrumbs `
-			(Get-HtmlLink (Join-HtmlPath "..", "..", "index.html") $namespace),
-			(Get-HtmlLink "index.html" $moduleName),
+			(Get-HtmlLink (Join-HtmlPath "..", "..", $home_page_filename) $namespace),
+			(Get-HtmlLink $home_page_filename $moduleName),
 			$function
 		Fill-Template $template $targetFile $PAGE_FUNCTION `
 			-title $function `
@@ -512,7 +512,7 @@ function Generate-FunctionPages($moduleName, $moduleDocPath, $parentTitle, $help
 			-moduleDetails $moduleDetails
 		Add-ItemToContentsList $function $_.CommandType `
 			-itemUrl (Join-HtmlPath $namespace, $moduleName, ($function+".html")) `
-			-parentUrl (Join-HtmlPath $namespace, $moduleName, "index.html") `
+			-parentUrl (Join-HtmlPath $namespace, $moduleName, $home_page_filename) `
 			-parentName $moduleName
 	}
 }
@@ -522,7 +522,7 @@ function Generate-ModulePage($namespace, $moduleName, $moduleDocPath, $parentTit
 	$indexTableRows = 
 	Get-Command -Module $moduleName | 
 	Filter-ThisModule $moduleName |
-	sort -Property Name |
+	Sort -Property Name |
 	% {
 		if ($_.CommandType -in $CMDLET_TYPES) {
 			Get-HtmlRow (Get-HtmlLink ($_.Name+".html") $_.Name), (HtmlEncode  $helpHash[$_.Name].Synopsis)
@@ -535,10 +535,10 @@ function Generate-ModulePage($namespace, $moduleName, $moduleDocPath, $parentTit
 		}
 	}
 
-	$targetFile = join-path $moduleDocPath "index.html"
+	$targetFile = join-path $moduleDocPath $home_page_filename
 	$namespaceDir = Join-Path $moduleRoot $namespace
 	$breadcrumbs = Get-HtmlBreadCrumbs `
-		(Get-HtmlLink (Join-HtmlPath "..", "..", "index.html") $namespace),
+		(Get-HtmlLink (Join-HtmlPath "..", "..", $home_page_filename) $namespace),
 		$moduleName
 	Fill-Template $template $targetFile $PAGE_MODULE `
 		-title $moduleName  `
@@ -550,14 +550,14 @@ function Generate-ModulePage($namespace, $moduleName, $moduleDocPath, $parentTit
 		-revDate $RevisionDate `
 		-moduleDetails $moduleDetails
 	Add-ItemToContentsList $moduleName "module" `
-		-itemUrl (Join-HtmlPath $namespace, $moduleName, "index.html") `
+		-itemUrl (Join-HtmlPath $namespace, $moduleName, $home_page_filename) `
 		-parentName $namespace `
-		-parentUrl "index.html"
+		-parentUrl $home_page_filename
 }
 
 function Generate-HomePage($namespaceSummary, $path, $title)
 {
-	Write-Host "Generating home page..."
+	Write-Host 'Generating home page...'
 	$body = $namespaceSummary.Keys | Sort  | % {
 		$namespace = $_
 		$headLevel = 2
@@ -567,12 +567,12 @@ function Generate-HomePage($namespaceSummary, $path, $title)
 		Get-HtmlTable (
 			$moduleItems.Keys | Sort |
 			%{
-				Get-HtmlRow (Get-HtmlLink (Join-HtmlPath $namespace, $_, "index.html") $_),
+				Get-HtmlRow (Get-HtmlLink (Join-HtmlPath $namespace, $_, $home_page_filename) $_),
 					$moduleItems[$_] 
 			}
 		)
 	}
-	$targetFile = join-path $TargetDir "index.html"
+	$targetFile = join-path $TargetDir $home_page_filename
 	Fill-Template $template $targetFile $PAGE_HOME `
 		-title $title `
 		-body $body `
@@ -582,7 +582,7 @@ function Generate-HomePage($namespaceSummary, $path, $title)
 
 function Generate-ContentsPage($title)
 {
-	Write-Host "Generating contents page..."
+	Write-Host 'Generating contents page...'
 	$body = $itemList |
 		Group -Property { $_.itemName.Substring(0,1).ToUpper() } |
 		Sort -Property Name |
@@ -601,7 +601,7 @@ function Generate-ContentsPage($title)
 				}
 			}
 		}
-	$targetFile = join-path $TargetDir "contents.html"
+	$targetFile = join-path $TargetDir $contents_page_filename
 	Fill-Template $template $targetFile $PAGE_CONTENTS `
 		-title $title `
 		-body $body `
@@ -719,7 +719,7 @@ function Get-OverviewContent([string]$overviewPath)
 		}
 		return $html.body.InnerXml
 	}
-	catch [Exception] {
+	catch {
 		[void](Handle-MissingValue $_.Exception.Message)
 	}
 }
@@ -794,13 +794,13 @@ function Get-Sections($text)
 		# The normal help text has section headers (NAME, SYNOPSIS, SYNTAX, DESCRIPTION, etc.)
 		# at the start of a line and everything else indented.
 		# Thus, this signals a new section:
-		if ($_ -match "^[A-Z]") {
+		if ($_ -match '^[A-Z]') {
 			Add-HelpSection $sectionName $text ([ref]$sectionHash) ([ref]$sectionOrder)# output prior section
 			$sectionName = $_
 			$lowBound = $rowNum + 1
 		}
 		# Add separate section title for examples (which standard help lacks).
-		elseif ($_ -match "----\s+EXAMPLE 1\s+----") {
+		elseif ($_ -match '----\s+EXAMPLE 1\s+----') {
 			Add-HelpSection $sectionName $text ([ref]$sectionHash) ([ref]$sectionOrder)# output prior section
 			$sectionName = $EXAMPLES_SECTION
 			$lowBound = $rowNum
@@ -871,7 +871,7 @@ function Add-Links($currentModuleName, $text)
 	$GRANDPARENT_INDEX = -3
 	$text -split "`n" | % {
 		$item = $_.Trim() # default to "as is" entry
-		if ($_ -match "^\s*(\w+-\w+)\s*$") { # cmdlet format: "verb-noun"
+		if ($_ -match '^\s*(\w+-\w+)\s*$') { # cmdlet format: "verb-noun"
 			$thisCmdName = $Matches[1]
 			if ($msdnIndex[$thisCmdName]) {
 				$item = Get-HtmlLink $msdnIndex[$thisCmdName] $thisCmdName # generate link to MSDN
@@ -886,7 +886,7 @@ function Add-Links($currentModuleName, $text)
 					$thisNamespace = ($cmd.Module.Path -split '\\')[$GRANDPARENT_INDEX]
 					if ($thisModName -eq $currentModuleName) { $path = $thisCmdName }
 					else { $path = "..","..",$thisNamespace,$thisModName,$thisCmdName -join "/" }
-					$item = Get-HtmlLink ("{0}.html" -f $path) $thisCmdName
+					$item = Get-HtmlLink ('{0}.html' -f $path) $thisCmdName
 				}
 				else {
 					[void](Handle-MissingValue "Related link '$thisCmdName' not loaded")
@@ -894,15 +894,15 @@ function Add-Links($currentModuleName, $text)
 				}
 			}
 		}
-		elseif ($_ -match "^\s*(about_[\w_]+)\s*$") { # topic format: "about_topic"
+		elseif ($_ -match '^\s*(about_[\w_]+)\s*$') { # topic format: "about_topic"
 			if ($msdnIndex[$Matches[1]]) {
 				$item = Get-HtmlLink $msdnIndex[$Matches[1]] $Matches[1] # generate link to MSDN
 			}
 		}
-		elseif ($_ -match "^\s*\[\s*([^]]+?)\s*\]\s*\(\s*([^)]+?)\s*\)\s*$") { # text link format: "[label] (URL)"
+		elseif ($_ -match '^\s*\[\s*([^]]+?)\s*\]\s*\(\s*([^)]+?)\s*\)\s*$') { # text link format: "[label] (URL)"
 			$item = Get-HtmlLink $Matches[2] $Matches[1] # generate link from URL and label provided
 		}
-		elseif ($_ -match "^\s*(https?:\S+)\s*$") { # URL format: "http:..." or "https:..."
+		elseif ($_ -match '^\s*(https?:\S+)\s*$') { # URL format: "http:..." or "https:..."
 			$item = Get-HtmlLink $Matches[1] $Matches[1] # generate link from URL provided
 		}
 		if ($item) { Get-HtmlListItem $item } # emit only if non-empty

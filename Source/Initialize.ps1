@@ -20,6 +20,8 @@ function Init-Variables()
 
 	$script:CMDLET_TYPES       ='Function','Filter','Cmdlet'
 
+	$script:home_page_filename          = "index.html"
+	$script:contents_page_filename      = "contents.html"
 	$script:namespace_overview_filename = "namespace_overview.html"
 	$script:module_overview_filename    = "module_overview.html"
 	$script:default_template            = "$PSScriptRoot\..\Templates\psdoc_template.html"
