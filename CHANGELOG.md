@@ -1,5 +1,24 @@
 ## Next Release
 
+## 2.0.09 (August 5, 2017)
+
+IMPROVEMENTS:
+  - Added new templates provided by ebekker:
+    + bootstrap4 template for a clean, modern look
+	+ test template to visualize the components that are defined by the template engine; also useful in developing and debugging templates
+
+  - Improved user experience when:
+    + no namespaces resolved out of glob pattern supplied on command line
+    + no modules found within a namespace
+    + no functions found within a module
+    + module unable to load
+
+BUG FIXES:
+  - [Issue #11](https://github.com/msorens/DocTreeGenerator/issues/11): Wildcard in Namespace selector should be resolved before using for page title
+  - [Issue #10](https://github.com/msorens/DocTreeGenerator/issues/10): Hyperlinks not being generated for custom functions from other local modules
+  - [Issue #7](https://github.com/msorens/DocTreeGenerator/issues/7): Cannot locate functions when module defines a DefaultCommandPrefix
+
+
 ## 2.0.08 (June 10, 2017)
 
 IMPROVEMENTS:
@@ -20,8 +39,7 @@ IMPROVEMENTS:
 
 IMPROVEMENTS:
   - Report more specific errors when no namespaces are found.
-  - Added -SourceDir parameter to allow  modules located in an arbitrary
-    directory. [#4](https://github.com/msorens/DocTreeGenerator/issues/4)
+  - [Issue #4](https://github.com/msorens/DocTreeGenerator/issues/4): Added -SourceDir parameter to allow  modules located in an arbitrary directory.
 
 
 BUG FIXES:
@@ -37,7 +55,7 @@ IMPROVEMENTS:
   - Added template and script for regenerating self-documentation (i.e. DocTreeGenerator itself).
 
 BUG FIXES:
-  - Overview files were not returning valid results with a DocType definition (DTD) present. [#3](https://github.com/msorens/DocTreeGenerator/issues/3)
+  - [Issue #3](https://github.com/msorens/DocTreeGenerator/issues/3): Overview files were not returning valid results with a DocType definition (DTD) present.
 
 
 

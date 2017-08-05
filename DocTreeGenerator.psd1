@@ -10,7 +10,7 @@
 RootModule = 'DocTreeGenerator.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.0.08'
+ModuleVersion = '2.0.09'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
