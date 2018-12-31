@@ -844,7 +844,8 @@ function ConvertTo-Body([hashtable]$sectionHash, [string[]]$sectionOrder, [strin
 		}
 		elseif ($sectionName -eq $EXAMPLES_SECTION)
 		{
-			$section += Get-HtmlDiv (ApplyLineBreaks (HtmlEncode $sectionHash[$sectionName]))
+			$section += Get-HtmlLineBreak
+			$section += Get-HtmlDiv (Get-HtmlPre (HtmlEncode $sectionHash[$sectionName]))
 			$break = Get-HtmlLineBreak
 			# add CSS class name
 			# (-replace does not support RegexOptions so need to use Regex.Replace)
